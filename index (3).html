@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>有得國民中小學 · 交通車GPS定位系統</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="有得國民中小學交通車">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%232563eb'/%3E%3Cpath d='M45 55 C45 45 55 40 90 40 C125 40 135 45 135 55 L135 120 C135 128 128 132 120 132 L120 142 C120 146 116 148 112 148 L106 148 C102 148 98 146 98 142 L98 132 L82 132 L82 142 C82 146 78 148 74 148 L68 148 C64 148 60 146 60 142 L60 132 C52 132 45 128 45 120 Z' fill='%23ffffff'/%3E%3Crect x='55' y='55' width='70' height='36' rx='6' fill='%231e40af'/%3E%3Ccircle cx='65' cy='112' r='7' fill='%23f59e0b'/%3E%3Ccircle cx='115' cy='112' r='7' fill='%23f59e0b'/%3E%3C/svg%3E">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet 地圖套件 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- QR Code 產生器套件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Font Awesome 圖示 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter & Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Noto+Sans+TC:wght@400;500;700;900&amp;display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
+        #map { height: 100%; width: 100%; z-index: 1; }
+        .bus-marker-icon { transition: transform 0.4s linear; }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+        .pulse-circle { animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        @keyframes marquee-slide {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-broadcast { display: inline-block; white-space: nowrap; }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.bottom-20{bottom:5rem}.bottom-4{bottom:1rem}.left-1\/2{left:50%}.left-3{left:0.75rem}.right-3{right:0.75rem}.top-3{top:0.75rem}.z-10{z-index:10}.z-20{z-index:20}.z-30{z-index:30}.z-\[1000\]{z-index:1000}.z-\[2000\]{z-index:2000}.z-\[500\]{z-index:500}.mb-1{margin-bottom:0.25rem}.mb-2{margin-bottom:0.5rem}.mb-2\.5{margin-bottom:0.625rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.ml-2{margin-left:0.5rem}.mr-1{margin-right:0.25rem}.mt-0\.5{margin-top:0.125rem}.mt-2{margin-top:0.5rem}.mt-1{margin-top:0.25rem}.mt-1\.5{margin-top:0.375rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-screen{height:100vh}.h-10{height:2.5rem}.h-2{height:0.5rem}.h-2\.5{height:0.625rem}.h-6{height:1.5rem}.h-9{height:2.25rem}.h-\[48\%\]{height:48%}.h-\[52\%\]{height:52%}.h-11{height:2.75rem}.h-5{height:1.25rem}.max-h-\[90vh\]{max-height:90vh}.max-h-\[92vh\]{max-height:92vh}.w-1\/2{width:50%}.w-10{width:2.5rem}.w-2{width:0.5rem}.w-2\.5{width:0.625rem}.w-24{width:6rem}.w-9{width:2.25rem}.w-full{width:100%}.w-px{width:1px}.w-11{width:2.75rem}.w-6{width:1.5rem}.w-5{width:1.25rem}.min-w-0{min-width:0px}.max-w-2xl{max-width:42rem}.max-w-\[140px\]{max-width:140px}.max-w-md{max-width:28rem}.max-w-sm{max-width:24rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes ping{75%, 100%{transform:scale(2);opacity:0}}.animate-ping{animation:ping 1s cubic-bezier(0, 0, 0.2, 1) infinite}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}.cursor-pointer{cursor:pointer}.select-none{-webkit-user-select:none;user-select:none}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-2\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.625rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.625rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.whitespace-nowrap{white-space:nowrap}.break-all{word-break:break-all}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-amber-200{--tw-border-opacity:1;border-color:rgb(253 230 138 / var(--tw-border-opacity, 1))}.border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77 / var(--tw-border-opacity, 1))}.border-blue-100{--tw-border-opacity:1;border-color:rgb(219 234 254 / var(--tw-border-opacity, 1))}.border-blue-100\/80{border-color:rgb(219 234 254 / 0.8)}.border-blue-200{--tw-border-opacity:1;border-color:rgb(191 219 254 / var(--tw-border-opacity, 1))}.border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208 / var(--tw-border-opacity, 1))}.border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249 / var(--tw-border-opacity, 1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-slate-200\/80{border-color:rgb(226 232 240 / 0.8)}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1))}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity, 1))}.border-blue-600{--tw-border-opacity:1;border-color:rgb(37 99 235 / var(--tw-border-opacity, 1))}.border-white{--tw-border-opacity:1;border-color:rgb(255 255 255 / var(--tw-border-opacity, 1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199 / var(--tw-bg-opacity, 1))}.bg-amber-50\/80{background-color:rgb(255 251 235 / 0.8)}.bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.bg-amber-600{--tw-bg-opacity:1;background-color:rgb(217 119 6 / var(--tw-bg-opacity, 1))}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}.bg-blue-50\/70{background-color:rgb(239 246 255 / 0.7)}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-emerald-100{--tw-bg-opacity:1;background-color:rgb(209 250 229 / var(--tw-bg-opacity, 1))}.bg-emerald-400{--tw-bg-opacity:1;background-color:rgb(52 211 153 / var(--tw-bg-opacity, 1))}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245 / var(--tw-bg-opacity, 1))}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.bg-indigo-600{--tw-bg-opacity:1;background-color:rgb(79 70 229 / var(--tw-bg-opacity, 1))}.bg-red-50{--tw-bg-opacity:1;background-color:rgb(254 242 242 / var(--tw-bg-opacity, 1))}.bg-slate-200{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-slate-900\/70{background-color:rgb(15 23 42 / 0.7)}.bg-slate-900\/75{background-color:rgb(15 23 42 / 0.75)}.bg-slate-900\/95{background-color:rgb(15 23 42 / 0.95)}.bg-transparent{background-color:transparent}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/95{background-color:rgb(255 255 255 / 0.95)}.bg-blue-500{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.bg-red-600{--tw-bg-opacity:1;background-color:rgb(220 38 38 / var(--tw-bg-opacity, 1))}.bg-emerald-50\/70{background-color:rgb(236 253 245 / 0.7)}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-amber-500{--tw-gradient-from:#f59e0b var(--tw-gradient-from-position);--tw-gradient-to:rgb(245 158 11 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-blue-50{--tw-gradient-from:#eff6ff var(--tw-gradient-from-position);--tw-gradient-to:rgb(239 246 255 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-orange-500{--tw-gradient-to:rgb(249 115 22 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #f97316 var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-indigo-50\/60{--tw-gradient-to:rgb(238 242 255 / 0.6) var(--tw-gradient-to-position)}.to-red-500{--tw-gradient-to:#ef4444 var(--tw-gradient-to-position)}.p-1{padding:0.25rem}.p-2{padding:0.5rem}.p-2\.5{padding:0.625rem}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pl-4{padding-left:1rem}.pt-1{padding-top:0.25rem}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-normal{font-weight:400}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-amber-500{--tw-text-opacity:1;color:rgb(245 158 11 / var(--tw-text-opacity, 1))}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6 / var(--tw-text-opacity, 1))}.text-amber-700{--tw-text-opacity:1;color:rgb(180 83 9 / var(--tw-text-opacity, 1))}.text-amber-800{--tw-text-opacity:1;color:rgb(146 64 14 / var(--tw-text-opacity, 1))}.text-amber-900{--tw-text-opacity:1;color:rgb(120 53 15 / var(--tw-text-opacity, 1))}.text-amber-950{--tw-text-opacity:1;color:rgb(69 26 3 / var(--tw-text-opacity, 1))}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235 / var(--tw-text-opacity, 1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216 / var(--tw-text-opacity, 1))}.text-blue-950{--tw-text-opacity:1;color:rgb(23 37 84 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105 / var(--tw-text-opacity, 1))}.text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87 / var(--tw-text-opacity, 1))}.text-emerald-800{--tw-text-opacity:1;color:rgb(6 95 70 / var(--tw-text-opacity, 1))}.text-emerald-900{--tw-text-opacity:1;color:rgb(6 78 59 / var(--tw-text-opacity, 1))}.text-indigo-600{--tw-text-opacity:1;color:rgb(79 70 229 / var(--tw-text-opacity, 1))}.text-orange-600{--tw-text-opacity:1;color:rgb(234 88 12 / var(--tw-text-opacity, 1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-white\/80{color:rgb(255 255 255 / 0.8)}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.opacity-0{opacity:0}.shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-blue-200{--tw-shadow-color:#bfdbfe;--tw-shadow:var(--tw-shadow-colored)}.shadow-blue-950\/50{--tw-shadow-color:rgb(23 37 84 / 0.5);--tw-shadow:var(--tw-shadow-colored)}.shadow-emerald-950\/50{--tw-shadow-color:rgb(2 44 34 / 0.5);--tw-shadow:var(--tw-shadow-colored)}.ring-4{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.ring-emerald-100{--tw-ring-opacity:1;--tw-ring-color:rgb(209 250 229 / var(--tw-ring-opacity, 1))}.backdrop-blur{--tw-backdrop-blur:blur(8px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.hover\:bg-amber-100:hover{--tw-bg-opacity:1;background-color:rgb(254 243 199 / var(--tw-bg-opacity, 1))}.hover\:bg-amber-500:hover{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.hover\:bg-amber-600:hover{--tw-bg-opacity:1;background-color:rgb(217 119 6 / var(--tw-bg-opacity, 1))}.hover\:bg-amber-700:hover{--tw-bg-opacity:1;background-color:rgb(180 83 9 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-100:hover{--tw-bg-opacity:1;background-color:rgb(219 234 254 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-500:hover{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-700:hover{--tw-bg-opacity:1;background-color:rgb(29 78 216 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-500:hover{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-700:hover{--tw-bg-opacity:1;background-color:rgb(4 120 87 / var(--tw-bg-opacity, 1))}.hover\:bg-indigo-700:hover{--tw-bg-opacity:1;background-color:rgb(67 56 202 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-200:hover{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-50:hover{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-900:hover{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.hover\:text-blue-800:hover{--tw-text-opacity:1;color:rgb(30 64 175 / var(--tw-text-opacity, 1))}.hover\:text-slate-600:hover{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.hover\:text-slate-900:hover{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.focus\:border-amber-500:focus{--tw-border-opacity:1;border-color:rgb(245 158 11 / var(--tw-border-opacity, 1))}.focus\:border-blue-400:focus{--tw-border-opacity:1;border-color:rgb(96 165 250 / var(--tw-border-opacity, 1))}.focus\:border-blue-500:focus{--tw-border-opacity:1;border-color:rgb(59 130 246 / var(--tw-border-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}@media (min-width: 640px){.sm\:inline{display:inline}.sm\:h-10{height:2.5rem}.sm\:w-10{width:2.5rem}.sm\:w-28{width:7rem}.sm\:max-w-\[190px\]{max-width:190px}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.sm\:gap-3{gap:0.75rem}.sm\:p-4{padding:1rem}.sm\:p-5{padding:1.25rem}.sm\:px-3{padding-left:0.75rem;padding-right:0.75rem}.sm\:px-4{padding-left:1rem;padding-right:1rem}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}.sm\:text-xs{font-size:0.75rem;line-height:1rem}}@media (min-width: 1024px){.lg\:h-full{height:100%}.lg\:w-\[400px\]{width:400px}.lg\:flex-row{flex-direction:row}.lg\:border-l{border-left-width:1px}.lg\:border-t-0{border-top-width:0px}}</style></head>
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden select-none">
+
+    <!-- 管理者即時車隊廣播橫幅 -->
+    <div id="broadcast-banner" class="hidden bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white px-4 py-2 text-xs sm:text-sm font-bold flex items-center justify-between shadow-md z-30 shrink-0">
+        <div class="flex items-center gap-2 overflow-hidden">
+            <span class="bg-white text-orange-600 px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 animate-pulse">
+                <i class="fa-solid fa-bullhorn mr-1"></i>車隊廣播
+            </span>
+            <span id="broadcast-banner-text" class="truncate"></span>
+        </div>
+        <button onclick="dismissBroadcastBanner()" class="ml-2 text-white/80 hover:text-white shrink-0 px-1.5 py-0.5 rounded">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- 頂部導覽列 -->
+    <header class="bg-white border-b border-slate-200 px-3 sm:px-4 py-2.5 flex items-center justify-between shadow-sm z-20 shrink-0">
+        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div class="bg-blue-600 text-white w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shadow-md shadow-blue-200 shrink-0">
+                <i class="fa-solid fa-bus text-base sm:text-lg"></i>
+            </div>
+            <div class="min-w-0">
+                <h1 class="font-extrabold text-sm sm:text-base leading-tight text-slate-900 truncate">有得國民中小學 · 交通車GPS定位系統</h1>
+                <div class="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                    <span id="status-dot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                    <span id="status-text" class="truncate">單機模式就緒 (道路軌跡已啟用)</span>
+                    <span id="road-status-badge" class="bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded text-[10px] font-bold shrink-0">道路軌跡已套用</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 角色切換器：家長/乘客端 vs 司機端 -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
+            <button id="btn-mode-passenger" onclick="switchMode('passenger')" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-blue-600 shadow-sm">
+                <i class="fa-solid fa-user-group mr-1"></i>家長端
+            </button>
+            <button id="btn-mode-driver" onclick="requestDriverMode()" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900">
+                <i class="fa-solid fa-id-card mr-1"></i>司機端
+            </button>
+        </div>
+    </header>
+
+    <!-- 次要控制列：時段/路線快選 + 車輛代碼 + 管理者操作 -->
+    <div class="bg-slate-900 text-white px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-xs z-20 shrink-0 shadow">
+        <div class="flex flex-wrap items-center gap-1.5 flex-1 min-w-0">
+            <!-- 時段選擇 -->
+            <select id="period-select" onchange="onPeriodChange()" class="bg-slate-800 border border-slate-700 text-white rounded-lg px-2 py-1 text-xs font-bold focus:outline-none focus:border-blue-400">
+                <option value="AM">上學接送</option>
+                <option value="PM16">16:20 放學</option>
+                <option value="PM18">18:00 放學</option>
+            </select>
+            <!-- 路線快選 -->
+            <select id="preset-route-select" onchange="onPresetRouteChange()" class="bg-slate-800 border border-slate-700 text-amber-300 rounded-lg px-2 py-1 text-xs font-bold max-w-[140px] sm:max-w-[190px] truncate focus:outline-none focus:border-blue-400"><option value="PM16-中壢線-1">中壢線-1 (16:20放學)</option><option value="PM16-中壢線-2">中壢線-2 (16:20放學)</option><option value="PM16-中壢線-3">中壢線-3 (16:20放學)</option><option value="PM16-中壢線-4">中壢線-4 (16:20放學)</option><option value="PM16-中壢線-5">中壢線-5 (16:20放學)</option><option value="PM16-特區線-1">特區線-1 (16:20放學)</option><option value="PM16-特區線-2">特區線-2 (16:20放學)</option><option value="PM16-特區線-3">特區線-3 (16:20放學)</option><option value="PM16-特區線-4">特區線-4 (16:20放學)</option><option value="PM16-特區線-5">特區線-5 (16:20放學)</option><option value="PM16-平鎮線-1">平鎮線-1 (16:20放學)</option><option value="PM16-平鎮線-2">平鎮線-2 (16:20放學)</option><option value="PM16-龍岡線">龍岡線 (16:20放學)</option><option value="PM16-八德線-1">八德線-1 (16:20放學)</option><option value="PM16-八德線-2">八德線-2 (16:20放學)</option><option value="PM16-八德線-3">八德線-3 (16:20放學)</option><option value="PM16-八德線-4">八德線-4 (16:20放學)</option><option value="PM16-桃園線">桃園線 (16:20放學)</option><option value="PM16-青埔線-1">青埔線-1 (16:20放學)</option><option value="PM16-青埔線-2">青埔線-2 (16:20放學)</option><option value="PM16-南崁線">南崁線 (16:20放學)</option></select>
+            <!-- 手動輸入/顯示車輛代碼 -->
+            <div class="flex items-center bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+                <input id="channel-input" type="text" value="AM-中壢線-1" placeholder="輸入車號" class="bg-transparent px-2 py-1 text-xs font-mono font-bold text-emerald-400 w-24 sm:w-28 focus:outline-none">
+                <button onclick="changeChannel()" class="bg-blue-600 hover:bg-blue-500 px-2 py-1 font-bold text-white transition">連線</button>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+            <button onclick="openBroadcastModal()" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 shadow-sm transition">
+                <i class="fa-solid fa-bullhorn"></i><span class="hidden sm:inline">管理者廣播</span>
+            </button>
+            <button onclick="openInstallModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 shadow-sm transition">
+                <i class="fa-solid fa-qrcode"></i><span>下載APP / QR碼</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 主內容區：地圖 + 底部/側邊資訊面板 -->
+    <main class="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
+        <!-- 地圖區域 -->
+        <div class="relative flex-1 h-[52%] lg:h-full">
+            <div id="map" class="leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom" tabindex="0" style="position: relative;"><div class="leaflet-pane leaflet-map-pane" style="transform: translate3d(-211px, 12px, 0px);"><div class="leaflet-pane leaflet-tile-pane"><div class="leaflet-layer " style="z-index: 1; opacity: 1;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 19; transform: translate3d(-857px, -186px, 0px) scale(2);"></div><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 20; transform: translate3d(-857px, -186px, 0px) scale(1);"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27418&amp;y=14035&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1558px, 400px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27418&amp;y=14036&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1558px, 656px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27417&amp;y=14035&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1302px, 400px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27419&amp;y=14035&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1814px, 400px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27417&amp;y=14036&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1302px, 656px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27419&amp;y=14036&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1814px, 656px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27418&amp;y=14034&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1558px, 144px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27418&amp;y=14037&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1558px, 912px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27417&amp;y=14034&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1302px, 144px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27419&amp;y=14034&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1814px, 144px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27417&amp;y=14037&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1302px, 912px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27419&amp;y=14037&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1814px, 912px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27416&amp;y=14035&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1046px, 400px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27420&amp;y=14035&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(2070px, 400px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27416&amp;y=14036&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1046px, 656px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27420&amp;y=14036&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(2070px, 656px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27416&amp;y=14034&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1046px, 144px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27420&amp;y=14034&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(2070px, 144px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27416&amp;y=14037&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(1046px, 912px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27420&amp;y=14037&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(2070px, 912px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27415&amp;y=14035&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(790px, 400px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27421&amp;y=14035&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(2326px, 400px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27415&amp;y=14036&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(790px, 656px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27421&amp;y=14036&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(2326px, 656px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27415&amp;y=14034&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(790px, 144px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27421&amp;y=14034&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(2326px, 144px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27415&amp;y=14037&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(790px, 912px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27421&amp;y=14037&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(2326px, 912px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27422&amp;y=14035&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(2582px, 400px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27422&amp;y=14036&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(2582px, 656px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27422&amp;y=14034&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(2582px, 144px, 0px); opacity: 1;"><img alt="" src="https://mt1.google.com/vt/lyrs=m&amp;hl=zh-TW&amp;x=27422&amp;y=14037&amp;z=15" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(2582px, 912px, 0px); opacity: 1;"></div></div></div><div class="leaflet-pane leaflet-overlay-pane"><svg pointer-events="none" class="leaflet-zoom-animated" width="1824" height="976" viewBox="59 -93 1824 976" style="transform: translate3d(59px, -93px, 0px);"><g><path class="leaflet-interactive" stroke="#2563eb" stroke-opacity="0.82" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" d="M849 200L840 207L823 185L820 188L816 183L781 213L767 222L749 230L743 231L743 254L740 274L720 270L707 272L720 374L716 409L711 436L707 470L708 473L798 486L787 501L748 501L733 499L723 571L773 578L783 591L800 581L840 553L854 546L887 539L956 537L979 530L1127 474L1135 490L1158 521L1233 606L1234 604L1203 569"></path></g></svg></div><div class="leaflet-pane leaflet-shadow-pane"></div><div class="leaflet-pane leaflet-marker-pane"><div class="leaflet-marker-icon bus-marker-icon leaflet-zoom-animated leaflet-interactive" tabindex="0" role="button" style="margin-left: -22px; margin-top: -22px; width: 44px; height: 44px; transform: translate3d(849px, 196px, 0px); z-index: 1196;"><div class="relative flex items-center justify-center w-11 h-11">
+                        <div class="absolute inset-0 bg-blue-500 rounded-full pulse-circle"></div>
+                        <div class="relative w-9 h-9 bg-blue-600 border-2 border-white rounded-full shadow-lg flex items-center justify-center text-white">
+                            <i class="fa-solid fa-bus text-sm"></i>
+                        </div>
+                       </div></div><div class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive" tabindex="0" role="button" style="margin-left: -48px; margin-top: -12px; width: 96px; height: 24px; transform: translate3d(849px, 196px, 0px); z-index: 196;"><div class="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-white shadow-md whitespace-nowrap"><i class="fa-solid fa-school mr-1"></i>有得國民中小學</div></div><div class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive" tabindex="0" role="button" style="margin-left: -12px; margin-top: -12px; width: 24px; height: 24px; transform: translate3d(777px, 504px, 0px); z-index: 504;"><div class="w-6 h-6 rounded-full bg-white border-2 border-blue-600 text-blue-700 font-extrabold text-[11px] flex items-center justify-center shadow">2</div></div><div class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive" tabindex="0" role="button" style="margin-left: -12px; margin-top: -12px; width: 24px; height: 24px; transform: translate3d(728px, 546px, 0px); z-index: 546;"><div class="w-6 h-6 rounded-full bg-white border-2 border-blue-600 text-blue-700 font-extrabold text-[11px] flex items-center justify-center shadow">3</div></div><div class="leaflet-marker-icon leaflet-zoom-animated leaflet-interactive" tabindex="0" role="button" style="margin-left: -12px; margin-top: -12px; width: 24px; height: 24px; transform: translate3d(1205px, 567px, 0px); z-index: 567;"><div class="w-6 h-6 rounded-full bg-white border-2 border-blue-600 text-blue-700 font-extrabold text-[11px] flex items-center justify-center shadow">4</div></div></div><div class="leaflet-pane leaflet-tooltip-pane"></div><div class="leaflet-pane leaflet-popup-pane"></div><div class="leaflet-proxy leaflet-zoom-animated" style="transform: translate3d(7.01928e+06px, 3.59314e+06px, 0px) scale(16384);"></div></div><div class="leaflet-control-container"><div class="leaflet-top leaflet-left"></div><div class="leaflet-top leaflet-right"></div><div class="leaflet-bottom leaflet-left"></div><div class="leaflet-bottom leaflet-right"><div class="leaflet-control-attribution leaflet-control"><a href="https://leafletjs.com" title="A JavaScript library for interactive maps"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8" class="leaflet-attribution-flag"><path fill="#4C7BE1" d="M0 0h12v4H0z"></path><path fill="#FFD500" d="M0 4h12v3H0z"></path><path fill="#E0BC00" d="M0 7h12v1H0z"></path></svg> Leaflet</a> <span aria-hidden="true">|</span> © Google Maps</div></div></div></div>
+
+            <!-- 地圖懸浮控制鈕 (右下角) -->
+            <div class="absolute bottom-4 right-3 z-[500] flex flex-col gap-2">
+                <button onclick="toggleMapLayer()" title="切換街道/衛星圖" class="w-10 h-10 bg-white hover:bg-slate-50 text-emerald-600 rounded-xl shadow-lg border border-slate-200 flex items-center justify-center transition">
+                    <i class="fa-solid fa-layer-group text-base"></i>
+                </button>
+                <button onclick="centerOnBus()" title="鎖定交通車位置" class="w-10 h-10 bg-white hover:bg-slate-50 text-blue-600 rounded-xl shadow-lg border border-slate-200 flex items-center justify-center transition">
+                    <i class="fa-solid fa-bus text-base"></i>
+                </button>
+                <button onclick="locateUser()" title="定位我的位置" class="w-10 h-10 bg-white hover:bg-slate-50 text-slate-700 rounded-xl shadow-lg border border-slate-200 flex items-center justify-center transition">
+                    <i class="fa-solid fa-location-crosshairs text-base"></i>
+                </button>
+            </div>
+
+            <!-- 頂部浮動車速與座標膠囊 -->
+            <div class="absolute top-3 left-3 z-[500] bg-white/95 backdrop-blur px-3 py-1.5 rounded-xl shadow-md border border-slate-200/80 flex items-center gap-3 text-xs">
+                <div>
+                    <span class="text-slate-400 block text-[10px]">目前車速</span>
+                    <span id="hud-speed" class="font-black text-slate-800 text-sm">0 <small class="font-normal text-slate-500">km/h</small></span>
+                </div>
+                <div class="h-6 w-px bg-slate-200"></div>
+                <div>
+                    <span class="text-slate-400 block text-[10px]">訊號更新</span>
+                    <span id="hud-updated" class="font-bold text-blue-600">等待訊號</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 資訊與控制面板 (手機在下方，電腦在右側) -->
+        <aside class="h-[48%] lg:h-full lg:w-[400px] bg-white border-t lg:border-t-0 lg:border-l border-slate-200 flex flex-col z-10 shadow-xl">
+            <!-- 家長/乘客端儀表板 -->
+            <div id="panel-passenger" class="p-3.5 bg-gradient-to-br from-blue-50 to-indigo-50/60 border-b border-blue-100 shrink-0">
+                <div class="flex items-center justify-between mb-2">
+                    <span id="route-title-display" class="font-extrabold text-sm text-blue-950 truncate">中壢線-1 (16:20放學)</span>
+                    <span id="eta-badge" class="bg-blue-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm shrink-0">已到站停靠</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="bg-white p-2 rounded-xl border border-blue-100/80 shadow-sm">
+                        <span class="text-slate-400 text-[11px] block">下一站停靠</span>
+                        <span id="next-stop-name" class="font-bold text-slate-800 truncate block mt-0.5">1. 學校</span>
+                    </div>
+                    <div class="bg-white p-2 rounded-xl border border-blue-100/80 shadow-sm">
+                        <span class="text-slate-400 text-[11px] block">沿馬路距離</span>
+                        <span id="distance-to-stop" class="font-bold text-indigo-600 block mt-0.5">0 公尺</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 司機端 GPS 發射控制台 (預設隱藏) -->
+            <div id="panel-driver" class="hidden p-3.5 bg-slate-900 text-white border-b border-slate-800 shrink-0">
+                <div class="flex items-center justify-between mb-2.5">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span class="font-bold text-sm">司機行車發射台</span>
+                    </div>
+                    <span id="driver-gps-accuracy" class="text-[11px] text-slate-400 font-mono">GPS 待機中</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btn-start-gps" onclick="toggleRealGPS()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-950/50 transition">
+                        <i class="fa-solid fa-satellite-dish"></i><span>啟動真實 GPS</span>
+                    </button>
+                    <button id="btn-sim-drive" onclick="toggleSimulation()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-blue-950/50 transition">
+                        <i class="fa-solid fa-route"></i><span>沿道路模擬行駛</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 站點列表標題列 -->
+            <div class="px-3.5 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+                <span class="text-xs font-extrabold text-slate-600">
+                    <i class="fa-solid fa-list-ol mr-1 text-blue-600"></i>路線站點與到離站時刻
+                </span>
+                <button onclick="openAdminConsole()" class="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition">
+                    <i class="fa-solid fa-sliders mr-1"></i>管理者設定/路線
+                </button>
+            </div>
+
+            <!-- 站點時間軸滾動區 -->
+            <div id="stops-list" class="flex-1 overflow-y-auto p-3.5 space-y-2.5 custom-scrollbar">
+                <div class="flex items-start gap-3 p-2.5 rounded-xl border bg-emerald-50/70 border-emerald-200 shadow-sm">
+                    <div class="flex flex-col items-center mt-1">
+                        <span class="w-5 h-5 rounded-full bg-emerald-500 ring-4 ring-emerald-100 text-white text-[10px] font-bold flex items-center justify-center">1</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-bold text-xs text-slate-800 truncate">學校</span>
+                            <span class="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded shrink-0">表定 16:20</span>
+                        </div>
+                        <div class="mt-1.5 flex items-center gap-3 text-[11px]">
+                            <span class="text-emerald-700 font-bold">
+                                <i class="fa-regular fa-clock mr-1"></i>到站：11:43
+                            </span>
+                            <span class="text-slate-400">
+                                <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i>離站：--:--
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-2.5 rounded-xl border bg-white border-slate-100 shadow-sm">
+                    <div class="flex flex-col items-center mt-1">
+                        <span class="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">2</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-bold text-xs text-slate-800 truncate">六和路/環北路口對面</span>
+                            <span class="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded shrink-0">表定 16:45</span>
+                        </div>
+                        <div class="mt-1.5 flex items-center gap-3 text-[11px]">
+                            <span class="text-slate-400">
+                                <i class="fa-regular fa-clock mr-1"></i>到站：--:--
+                            </span>
+                            <span class="text-slate-400">
+                                <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i>離站：--:--
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-2.5 rounded-xl border bg-white border-slate-100 shadow-sm">
+                    <div class="flex flex-col items-center mt-1">
+                        <span class="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">3</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-bold text-xs text-slate-800 truncate">元化路【sogo大門】</span>
+                            <span class="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded shrink-0">表定 16:48</span>
+                        </div>
+                        <div class="mt-1.5 flex items-center gap-3 text-[11px]">
+                            <span class="text-slate-400">
+                                <i class="fa-regular fa-clock mr-1"></i>到站：--:--
+                            </span>
+                            <span class="text-slate-400">
+                                <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i>離站：--:--
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-2.5 rounded-xl border bg-white border-slate-100 shadow-sm">
+                    <div class="flex flex-col items-center mt-1">
+                        <span class="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">4</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-bold text-xs text-slate-800 truncate">新生路288號</span>
+                            <span class="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded shrink-0">表定 16:50</span>
+                        </div>
+                        <div class="mt-1.5 flex items-center gap-3 text-[11px]">
+                            <span class="text-slate-400">
+                                <i class="fa-regular fa-clock mr-1"></i>到站：--:--
+                            </span>
+                            <span class="text-slate-400">
+                                <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i>離站：--:--
+                            </span>
+                        </div>
+                    </div>
+                </div></div>
+        </aside>
+    </main>
+
+    <!-- 1. 通用安全驗證視窗 (管理者 / 司機 / 家長) -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-100">
+            <div class="flex items-center justify-between mb-3">
+                <h3 id="auth-modal-title" class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-blue-600"></i><span>安全權限驗證</span>
+                </h3>
+                <button id="auth-close-btn" onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p id="auth-modal-desc" class="text-xs text-slate-500 mb-4">請輸入驗證資訊以繼續操作。</p>
+            <div class="space-y-3">
+                <div id="auth-account-group">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">帳號</label>
+                    <input id="auth-input-user" type="text" placeholder="請輸入帳號" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">密碼</label>
+                    <input id="auth-input-pass" type="password" placeholder="請輸入密碼" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <p id="auth-error-msg" class="hidden text-xs font-bold text-red-600 bg-red-50 p-2 rounded-lg"></p>
+                <button onclick="submitAuthVerification()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-sm shadow-md transition">
+                    確認驗證
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 免登入下載 APP 與 QR Code 分享視窗 -->
+    <div id="install-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-mobile-screen-button text-emerald-600"></i>
+                    <span>安裝 APP 到手機與產生 QR 碼</span>
+                </h3>
+                <button onclick="closeInstallModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- 免帳號直接下載區 -->
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 mb-3">
+                <div class="font-extrabold text-xs text-emerald-900 mb-1">
+                    <i class="fa-solid fa-circle-check mr-1"></i>步驟一：下載 APP 檔案並取得「家長免登入連接網址」
+                </div>
+                <p class="text-[11px] text-emerald-800 leading-relaxed mb-2.5">
+                    家長與司機<strong>完全不需要註冊或登入任何帳號</strong>。請先點擊下方下載完整檔案（<code>index.html</code>），再將檔案上傳至學校官網空間，或點擊右側<strong>「免註冊快速產生網址」</strong>（支援 Tiiny.host / Static.app 等免登入拖曳上架空間），上傳後 5 秒即可取得 <code>https://</code> 公開連接網址！
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button onclick="downloadStandaloneAppFile()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition">
+                        <i class="fa-solid fa-download"></i><span>1. 下載 index.html 檔</span>
+                    </button>
+                    <a href="https://tiiny.host/" target="_blank" rel="noopener noreferrer" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i><span>2. 前往免登入拖曳產生網址</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 網址與即時 QR Code 產生器 -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-3">
+                <label class="block font-extrabold text-xs text-slate-800 mb-1">
+                    <i class="fa-solid fa-qrcode mr-1 text-blue-600"></i>步驟二：貼上連接網址，自動產生「家長/司機掃描 QR 碼」
+                </label>
+                <p id="local-file-warning" class="text-[11px] text-amber-800 bg-amber-100 p-2 rounded-lg mb-2 font-medium">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i>您目前開啟的是電腦本機檔案（家長手機無法連入電腦硬碟）。請先執行上方步驟一，將取得之 <strong>https:// 連接網址</strong> 貼入下方欄位，系統會自動記憶並產生專屬 QR 碼：
+                </p>
+                <div class="flex gap-1.5 mb-2">
+                    <input id="share-url-input" type="text" oninput="onShareUrlChanged()" placeholder="請貼上 https:// 開頭的家長連接網址" class="flex-1 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-mono bg-white focus:outline-none focus:border-blue-500">
+                    <button onclick="copyShareLinkAndInfo()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shrink-0 transition">
+                        複製連結
+                    </button>
+                </div>
+                <div id="full-bus-link-preview" class="hidden text-[11px] text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg mb-2.5 font-mono break-all border border-blue-100"></div>
+                <div class="flex flex-col items-center justify-center bg-white p-3 rounded-xl border border-slate-200">
+                    <div id="qrcode-container" class="p-1"><div class="text-[11px] text-slate-400 py-8 px-4 text-center">請在上方貼上您的 <strong>https://</strong> 連接網址<br>系統將自動產生給家長與司機掃描的 QR 碼</div></div>
+                    <span id="qrcode-bus-label" class="mt-2 text-xs font-extrabold text-slate-700">目前綁定車輛：PM16-中壢線-1 (中壢線-1 (16:20放學))</span>
+                </div>
+            </div>
+
+            <!-- iPhone 與 Android 安裝教學 -->
+            <div class="space-y-2 text-xs text-slate-600 bg-blue-50/70 p-3 rounded-xl border border-blue-100">
+                <div class="font-bold text-slate-800"><i class="fa-brands fa-apple mr-1"></i>蘋果 iPhone (請用 Safari 開啟)：</div>
+                <p class="text-[11px] pl-4">點選底部中間「分享」圖示 <i class="fa-solid fa-arrow-up-from-bracket"></i> → 選擇<strong>「加入主畫面」</strong>即可建立桌面 APP。</p>
+                <div class="font-bold text-slate-800 pt-1"><i class="fa-brands fa-android text-emerald-600 mr-1"></i>Android 安卓手機 (請用 Chrome 開啟)：</div>
+                <p class="text-[11px] pl-4">點選右上角「⋮」選單 → 選擇<strong>「安裝應用程式」</strong>或<strong>「加到主畫面」</strong>。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 管理者即時車隊廣播視窗 -->
+    <div id="broadcast-modal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-100">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-bullhorn text-amber-500"></i><span>發布全車即時廣播公告</span>
+                </h3>
+                <button onclick="closeBroadcastModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 mb-2">訊息將即時推播至正在追蹤 <strong id="broadcast-target-bus" class="text-blue-600"></strong> 的所有家長與司機手機畫面上。</p>
+            <div class="flex flex-wrap gap-1.5 mb-2.5">
+                <button onclick="fillBroadcastTemplate('今日因雨勢較大車多壅塞，預計延遲約 10 分鐘到站，請家長見諒。')" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-lg">雨天塞車延遲</button>
+                <button onclick="fillBroadcastTemplate('交通車已準時從學校發車，請家長留意到站時間。')" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-lg">已從學校發車</button>
+                <button onclick="fillBroadcastTemplate('今日臨時調度備用車輛接送，車號不變，請同學安心搭乘。')" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-lg">調度備用車輛</button>
+            </div>
+            <textarea id="broadcast-message-input" rows="3" placeholder="請輸入要廣播給全車家長與司機的訊息..." class="w-full p-3 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-amber-500 mb-3"></textarea>
+            <div class="flex gap-2">
+                <button onclick="clearBroadcast()" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">清除公告</button>
+                <button onclick="submitBroadcast()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-sm shadow transition">立即發布廣播</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 管理者控制台 (編輯路線、批次匯入、三層帳密設定) -->
+    <div id="admin-modal" class="hidden fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-[1000] flex items-center justify-center p-2 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between shrink-0">
+                <h3 class="font-extrabold text-sm sm:text-base flex items-center gap-2">
+                    <i class="fa-solid fa-user-shield text-amber-400"></i><span>管理者控制台 · 路線與權限設定</span>
+                </h3>
+                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-4 sm:p-5 overflow-y-auto space-y-4 custom-scrollbar flex-1 text-xs">
+                <!-- 基本路線資訊 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">車輛 / 路線代碼</label>
+                        <input id="edit-bus-code" type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono font-bold bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">路線顯示名稱</label>
+                        <input id="edit-route-name" type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg font-bold bg-white">
+                    </div>
+                </div>
+
+                <!-- 三層級安全帳密設定 -->
+                <div class="bg-blue-50/70 p-3.5 rounded-xl border border-blue-200 space-y-2.5">
+                    <div class="font-extrabold text-blue-950 flex items-center gap-1.5">
+                        <i class="fa-solid fa-key text-blue-600"></i><span>三層級帳號密碼控管（留空代表免密碼開放）</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div class="bg-white p-2.5 rounded-lg border border-blue-100">
+                            <span class="font-bold text-amber-700 block mb-1">管理者最高密碼</span>
+                            <input id="edit-admin-pass" type="password" placeholder="輸入新管理者密碼" class="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs">
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-blue-100">
+                            <span class="font-bold text-emerald-700 block mb-1">本車司機帳號 / 密碼</span>
+                            <div class="flex gap-1">
+                                <input id="edit-driver-user" type="text" placeholder="帳號" class="w-1/2 px-2 py-1.5 border border-slate-300 rounded text-xs">
+                                <input id="edit-driver-pass" type="password" placeholder="密碼" class="w-1/2 px-2 py-1.5 border border-slate-300 rounded text-xs">
+                            </div>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-blue-100">
+                            <span class="font-bold text-blue-700 block mb-1">本車家長帳號 / 密碼</span>
+                            <div class="flex gap-1">
+                                <input id="edit-parent-user" type="text" placeholder="帳號" class="w-1/2 px-2 py-1.5 border border-slate-300 rounded text-xs">
+                                <input id="edit-parent-pass" type="password" placeholder="密碼" class="w-1/2 px-2 py-1.5 border border-slate-300 rounded text-xs">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 批次匯入站點 -->
+                <div class="bg-amber-50/80 p-3.5 rounded-xl border border-amber-200 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-amber-950"><i class="fa-solid fa-file-import mr-1 text-amber-600"></i>批次匯入站點（支援貼上文字或 CSV 檔）</span>
+                        <label class="cursor-pointer bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded-lg font-bold text-[11px]">
+                            <i class="fa-solid fa-upload mr-1"></i>上傳 CSV/TXT
+                            <input type="file" accept=".csv,.txt" onchange="handleCSVUpload(event)" class="hidden">
+                        </label>
+                    </div>
+                    <textarea id="batch-import-text" rows="3" placeholder="每行一站，格式：站點名稱, 表定時間
+例如：
+民權路【民權經典站牌】, 07:10
+六和路/環北路口, 07:15" class="w-full p-2.5 border border-amber-300 rounded-lg text-xs font-mono bg-white"></textarea>
+                    <div class="flex gap-2">
+                        <button onclick="parseBatchStops(true)" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs">覆蓋並匯入</button>
+                        <button onclick="parseBatchStops(false)" class="bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold px-3 py-1.5 rounded-lg text-xs">附加至後方</button>
+                    </div>
+                </div>
+
+                <!-- 站點清單編輯區 -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-extrabold text-slate-800">站點明細編輯（移動地圖後可點「抓地圖中心」更新座標）</span>
+                        <button onclick="addNewStopRow()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded-lg text-xs">
+                            <i class="fa-solid fa-plus mr-1"></i>新增一站
+                        </button>
+                    </div>
+                    <div id="edit-stops-container" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- 底部儲存按鈕列 -->
+            <div class="px-5 py-3 bg-slate-100 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <button onclick="syncAll85RoutesToCloud()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-2 rounded-xl text-xs shadow transition">
+                    <i class="fa-solid fa-cloud-arrow-up mr-1"></i>一鍵同步全校85條路線
+                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="closeAdminModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 font-bold rounded-xl text-xs">取消</button>
+                    <button onclick="saveAdminSettings()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md transition">儲存並套用道路軌跡</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全域提示訊息 Toast -->
+    <div id="toast-box" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-[2000] pointer-events-none transition-opacity duration-300 opacity-0">
+        <div id="toast-content" class="bg-slate-900/95 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-xl border border-slate-700 flex items-center gap-2"><i class="fa-solid fa-circle-info text-blue-400"></i><span>已下載完整 APP 檔案 (index.html)</span></div>
+    </div>
+
+    <!-- 主要應用邏輯腳本 -->
+    <script>
+        // ==========================================
+        // 1. 全校 85 條上放學路線資料庫 (有得國民中小學 115學年度上學期)
+        // ==========================================
+        const SCHOOL_COORDS = { lat: 24.9768, lng: 121.2295, name: "有得國民中小學" };
+
+        // 桃園中壢/平鎮/桃園/八德/青埔/南崁地標座標字典，精準對應各站點
+        const LANDMARK_COORDS = [
+            { kw: "民權經典", lat: 24.9612, lng: 121.2215 },
+            { kw: "六和路/環北", lat: 24.9648, lng: 121.2252 },
+            { kw: "全家福安", lat: 24.9675, lng: 121.2290 },
+            { kw: "全家福爵", lat: 24.9690, lng: 121.2315 },
+            { kw: "全家霜爵", lat: 24.9690, lng: 121.2315 },
+            { kw: "佳家福", lat: 24.9625, lng: 121.2130 },
+            { kw: "環西路二段", lat: 24.9655, lng: 121.2155 },
+            { kw: "九和二街", lat: 24.9635, lng: 121.2238 },
+            { kw: "福壽六街", lat: 24.9682, lng: 121.2275 },
+            { kw: "新德街", lat: 24.9485, lng: 121.2230 },
+            { kw: "玉山銀行", lat: 24.9565, lng: 121.2385 },
+            { kw: "和平路149", lat: 24.9450, lng: 121.2280 },
+            { kw: "大全聯", lat: 24.9585, lng: 121.2420 },
+            { kw: "環中東路925", lat: 24.9640, lng: 121.2465 },
+            { kw: "新生路三段399", lat: 24.9850, lng: 121.2180 },
+            { kw: "南園二路", lat: 24.9735, lng: 121.2345 },
+            { kw: "西園路", lat: 24.9745, lng: 121.2360 },
+            { kw: "新榮路", lat: 24.9540, lng: 121.2160 },
+            { kw: "忠孝路38", lat: 24.9520, lng: 121.2130 },
+            { kw: "大石門", lat: 24.9570, lng: 121.2175 },
+            { kw: "霸味薑母鴨", lat: 24.9660, lng: 121.2200 },
+            { kw: "元化路", lat: 24.9620, lng: 121.2255 },
+            { kw: "sogo", lat: 24.9630, lng: 121.2260 },
+            { kw: "溪洲街", lat: 24.9680, lng: 121.2240 },
+            { kw: "中平國小", lat: 24.9580, lng: 121.2020 },
+            { kw: "崇義七賢", lat: 24.9620, lng: 121.2180 },
+            { kw: "天晟醫院", lat: 24.9675, lng: 121.2225 },
+            { kw: "梅北路", lat: 24.9480, lng: 121.1980 },
+            { kw: "復旦路", lat: 24.9525, lng: 121.2050 },
+            { kw: "文化街", lat: 24.9550, lng: 121.2090 },
+            { kw: "明德南路", lat: 24.9535, lng: 121.2145 },
+            { kw: "內壢", lat: 24.9730, lng: 121.2580 },
+            { kw: "環南路三段", lat: 24.9410, lng: 121.2220 },
+            { kw: "龍岡路", lat: 24.9380, lng: 121.2350 },
+            { kw: "森林公園", lat: 24.9350, lng: 121.2420 },
+            { kw: "龍東路", lat: 24.9290, lng: 121.2510 },
+            { kw: "中山東路", lat: 24.9480, lng: 121.2530 },
+            { kw: "南東路", lat: 24.9250, lng: 121.2380 },
+            { kw: "平東路", lat: 24.9220, lng: 121.2450 },
+            { kw: "龍昌路", lat: 24.9310, lng: 121.2480 },
+            { kw: "普忠路", lat: 24.9610, lng: 121.2520 },
+            { kw: "中豐路山頂", lat: 24.9050, lng: 121.2150 },
+            { kw: "自來水公司", lat: 24.9560, lng: 121.2240 },
+            { kw: "莊敬路", lat: 24.9685, lng: 121.2550 },
+            { kw: "永福路", lat: 24.9660, lng: 121.2600 },
+            { kw: "八德", lat: 24.9450, lng: 121.2850 },
+            { kw: "廣豐", lat: 24.9620, lng: 121.2980 },
+            { kw: "青埔", lat: 25.0080, lng: 121.2120 },
+            { kw: "高鐵南路", lat: 25.0020, lng: 121.2080 },
+            { kw: "領航", lat: 25.0120, lng: 121.2150 },
+            { kw: "青商路", lat: 25.0140, lng: 121.2130 },
+            { kw: "青昇路", lat: 25.0110, lng: 121.2190 },
+            { kw: "春德路", lat: 25.0160, lng: 121.2140 },
+            { kw: "大業路", lat: 25.0150, lng: 121.3120 },
+            { kw: "大興西路", lat: 25.0160, lng: 121.2980 },
+            { kw: "藝文特區", lat: 25.0175, lng: 121.3015 },
+            { kw: "中正路", lat: 25.0120, lng: 121.3030 },
+            { kw: "南崁", lat: 25.0480, lng: 121.2920 },
+            { kw: "張榮發", lat: 25.0450, lng: 121.2890 },
+            { kw: "光明國小", lat: 25.0465, lng: 121.2860 },
+            { kw: "桃鶯路", lat: 24.9850, lng: 121.3210 },
+            { kw: "復興路", lat: 24.9910, lng: 121.3120 },
+            { kw: "中山路", lat: 24.9920, lng: 121.2950 }
+        ];
+
+        function resolveCoordsForStop(stopName, index, total) {
+            if (stopName === "學校") return { lat: SCHOOL_COORDS.lat, lng: SCHOOL_COORDS.lng };
+            for (const item of LANDMARK_COORDS) {
+                if (stopName.includes(item.kw)) {
+                    const jitterLat = ((index % 3) - 1) * 0.0012;
+                    const jitterLng = (((index + 1) % 3) - 1) * 0.0012;
+                    return { lat: +(item.lat + jitterLat).toFixed(5), lng: +(item.lng + jitterLng).toFixed(5) };
+                }
+            }
+            // 若無特定地標則依序沿中壢環狀道路分佈
+            const angle = (index / Math.max(total, 1)) * Math.PI * 0.8 + 0.5;
+            const radius = 0.015 + (index * 0.002);
+            return {
+                lat: +(SCHOOL_COORDS.lat - Math.sin(angle) * radius).toFixed(5),
+                lng: +(SCHOOL_COORDS.lng - Math.cos(angle) * radius).toFixed(5)
+            };
+        }
+
+        const RAW_SCHOOL_ROUTES = {
+            AM: [
+                { id: "AM-中壢線-1", name: "中壢線-1 (上學)", str: "民權路【民權經典站牌】(0710)→六和路/環北路口(0715)→福州二街【全家福安店】(0718)→福州二街【全家霜爵店】(0720)→學校" },
+                { id: "AM-中壢線-2", name: "中壢線-2 (上學)", str: "環西路【佳家福餐廳對面】(0708)→環西路二段/300巷口【全家】(0712)→六和/九和二街口(0715)→學校" },
+                { id: "AM-中壢線-3", name: "中壢線-3 (上學)", str: "六和/九和二街口(0710)→福州一街/福壽六街口【全聯社】(0718)→福州二街【全家福安店】(0720)→學校" },
+                { id: "AM-中壢線-4", name: "中壢線-4 (上學)", str: "新德街239號(0700)→中北路二段【玉山銀行對面】(0710)→學校" },
+                { id: "AM-中壢線-5", name: "中壢線-5 (上學)", str: "平鎮區和平路149號(0705)→中北路二段【玉山銀行對面】(0710)→中北路二段【大全聯】(0713)→環中東路925巷口(0720)→學校" },
+                { id: "AM-中壢線-6", name: "中壢線-6 (上學)", str: "新生路三段399巷口(0700)→南園二路63號【7-11茂利門市】(0720)→西園路84巷口(0725)→學校" },
+                { id: "AM-中壢線-7", name: "中壢線-7 (上學)", str: "新榮路78巷/63巷口(0650)→平鎮區忠孝路38號(0655)→中央西路二段【大石門】(0700)→環北路206號【霸味薑母鴨】(0705)→元化路271巷【三年四班早餐店】(0710)→溪洲街7號(0715)→學校" },
+                { id: "AM-中壢線-8", name: "中壢線-8 (上學)", str: "民族路三段【中平國小公車站】(0650)→延平路二段430巷【崇義七賢】(0702)→延平路【天晟醫院全家】(0715)→學校" },
+                { id: "AM-中壢線-9", name: "中壢線-9 (上學)", str: "梅北路263巷口(0650)→復旦路二段150巷185號(0655)→復旦路二段186巷298號(0655)→文化街236巷口(0700)→明德南路58號(0710)→內壢興農路/成章四街口(0725)→學校" },
+                { id: "AM-平鎮線-1", name: "平鎮線-1 (上學)", str: "環南路三段/金陵路口【加油站】(0650)→龍岡路全國加油站【康貝特站牌】(0655)→龍岡路三段【森林公園公車站】(0700)→龍東路255巷口【85℃】對面(0705)→龍東路/龍江路口(0708)→中山東路3段319號【電信器材廠公車站】(0713)→中山東路/仁慈路口(0715)→學校" },
+                { id: "AM-平鎮線-2", name: "平鎮線-2 (上學)", str: "南東路453巷【大清一品社區】(0655)→平東路661號【7-11東正門市】(0700)→龍昌路475號(0708)→龍昌路185號(0710)→台北永和豆漿士校店(0715)→普忠路579巷【深耕二】(0720)→學校" },
+                { id: "AM-龍潭線", name: "龍潭線 (上學)", str: "中豐路山頂段【華夏山莊公車站】(0650)→大興街/金城街口【萊爾富平南王門市】(0654)→南京路102號(0658)→南平路103巷66號(0700)→正義路82號【7-11正湧門市】(0710)→平鎮區大智街98號【子涵音樂教室】(0712)→學校" },
+                { id: "AM-延平線", name: "延平線 (上學)", str: "延平路一段【自來水公司】(0710)→中山路/延平路口【土地銀行】(0715)→學校" },
+                { id: "AM-內壢線-1", name: "內壢線-1 (上學)", str: "新中北路二段197號(0710)→榮安十三街/榮安三街口【全家】(0712)→榮安十三街/榮安十五街口【全家】(0715)→莊敬路【自立郵局】(0720)→富國街/莊敬路口【7-11鑫莊門市】(0725)→學校" },
+                { id: "AM-內壢線-2", name: "內壢線-2 (上學)", str: "莊敬路829巷26號(0710)→永福路943號(0715)→永福路1138號【國防部福利站-內壢站】(0720)→學校" },
+                { id: "AM-八德線-1", name: "八德線-1 (上學)", str: "桃德路382號【OK八德桃福店】(0655)→廣豐二街/公園路口(0700)→國際路一段【竹園餐廳】(0705)→學校" },
+                { id: "AM-八德線-2", name: "八德線-2 (上學)", str: "忠勇六街-君臨天下廣場(0655)→和義街/和強一街口(0700)→大和路108號(0705)→廣福路456號【萊爾富-八德店】(0712)→學校" },
+                { id: "AM-八德線-3", name: "八德線-3 (上學)", str: "八德國中候車亭(0700)→學校" },
+                { id: "AM-八德線-4", name: "八德線-4 (上學)", str: "瑞安街118之3號(0700)→介壽路二段1044號(0702)→八德國中候車亭(0708)→仁德路83號【亮亮生鮮超市】(0712)→學校" },
+                { id: "AM-青埔線-1", name: "青埔線-1 (上學)", str: "永昌路179號(0650)→永泰路153號(0653)→洽溪路/永順一街路口(0658)→公園路一段47號(早餐店)(0705)→青商路【吉的堡】(0710)→青商路/站前西路口(0715)→站前西路二段200號【四海遊龍】(0718)→學校" },
+                { id: "AM-青埔線-2", name: "青埔線-2 (上學)", str: "領航南路/文發路口(0650)→高鐵南路三段【7-11高萱門市】(0653)→領航北路二段60號【7-11青航門市】(0658)→青昇路123號對面【青園國小公車站】(0710)→領航南路三段322號(0715)→學校" },
+                { id: "AM-青埔線-3", name: "青埔線-3 (上學)", str: "大園區春德路128號【全家】(0655)→致善路一段92號(0700)→致祥一街95號【首富社區】(0703)→致遠一路79號(0705)→中正東路三段286號(0715)→學校" },
+                { id: "AM-特區線-1", name: "特區線-1 (上學)", str: "大業路一段139號【全家-大業店】對面(0655)→大業路一段328號【義美食品】(0658)→大興西路一段178號【7-11辰興門市】(0705)→大興西路一段208號【全家-桃園帝國店】(0708)→桃園區中埔二街155號【八方雲集同德店】(0712)→學校" },
+                { id: "AM-特區線-2", name: "特區線-2 (上學)", str: "永安路810-1巷6弄【百川大喆】(0710)→力行路725號(0720)→學校" },
+                { id: "AM-特區線-3", name: "特區線-3 (上學)", str: "蘆竹區新生路42號(0700)→興仁路330號【大竹分館】(0708)→國豐六街/國強八街口(0718)→學校" },
+                { id: "AM-特區線-4", name: "特區線-4 (上學)", str: "中正路699號【文安藥局】(0700)→力行路398號(0703)→正光路201號(0710)→學校" },
+                { id: "AM-特區線-5", name: "特區線-5 (上學)", str: "經國路336巷口【福斯汽車】(0700)→中正路1209巷口【行政執行署】(0705)→正光一街236號(0718)→學校" },
+                { id: "AM-特區線-6", name: "特區線-6 (上學)", str: "慈文路865號(0710)→力行路725號(0713)→學校" },
+                { id: "AM-南崁線-1", name: "南崁線-1 (上學)", str: "仁愛路一段509號【比而堡早餐店對面】(0655)→仁愛路二段7號對面(0656)→張榮發文物館(0700)→南祥路【長榮吉邸】(0702)→光明國小公車站(0708)→忠孝西路/奉化路【7-11國邦門市】(0710)→南福街【光明郵局公車站】(0712)→學校" },
+                { id: "AM-南崁線-2", name: "南崁線-2 (上學)", str: "蘆竹區吉林路91號(0658)→忠孝西路/奉化路【7-11國邦門市】(0710)→學校" },
+                { id: "AM-桃園線-1", name: "桃園線-1 (上學)", str: "桃園區桃鶯路355號(0700)→建國路172號(0705)→桃園區民族路86號(0710)→中山路527號【臺灣土地改革陳列館】(0715)→學校" },
+                { id: "AM-桃園線-2", name: "桃園線-2 (上學)", str: "中山路/延壽街口(0710)→龍祥街48號【OK龍祥店】(0720)→學校" },
+                { id: "AM-桃園線-3", name: "桃園線-3 (上學)", str: "桃園區復興路76號(0700)→中山北路/忠一路口(0710)→中山路958號【舊IKEA】(0718)→成章一街88號【樂家康-成章1店】(0728)→學校" }
+            ],
+            PM16: [
+                { id: "PM16-中壢線-1", name: "中壢線-1 (16:20放學)", str: "學校(1620)→六和路/環北路口對面(1645)→元化路【sogo大門】(1648)→新生路288號(1650)" },
+                { id: "PM16-中壢線-2", name: "中壢線-2 (16:20放學)", str: "學校(1620)→福州二街【全家福爵店】(1640)→民權路【民權經典站牌】(1648)→三光路/環西路二段300巷口(1653)→環西路【佳家福餐廳】(1658)" },
+                { id: "PM16-中壢線-3", name: "中壢線-3 (16:20放學)", str: "學校(1620)→中山路/延平路口【知味花生】(1640)→延平路一段【自來水公司】(1643)→中壢區中明路29號(1648)" },
+                { id: "PM16-中壢線-4", name: "中壢線-4 (16:20放學)", str: "學校(1620)→南園二路34號(1635)→南園二路/西園路口(1637)→南園二路296巷口(1640)→新生路548巷11弄2街18號(1645)→溪洲街7號(1700)" },
+                { id: "PM16-中壢線-5", name: "中壢線-5 (16:20放學)", str: "學校(1620)→環西路二段219號【昇公館】(1640)→中央西路二段【大石門】(1645)→環南路18號【元大銀行】(1650)→文化街【四海遊龍】(1655)→平鎮區廣明路21巷35號(1700)" },
+                { id: "PM16-特區線-1", name: "特區線-1 (16:20放學)", str: "學校(1620)→國強一街/國豐三街口(1638)→力行路725號(1645)→正光一街236號(1648)→文中一路/正光路203巷口【吉祥保安公園】(1652)→廈門街/守法路口(1655)" },
+                { id: "PM16-特區線-2", name: "特區線-2 (16:20放學)", str: "學校(1620)→中正路1100號【中正藝文特區公車站】(1655)" },
+                { id: "PM16-特區線-3", name: "特區線-3 (16:20放學)", str: "學校(1620)→永安路810-1巷6弄【百川大喆】(1640)→經國路與天祥七街口【7-11】(1655)" },
+                { id: "PM16-特區線-4", name: "特區線-4 (16:20放學)", str: "學校(1620)→中山北路/忠一路口(1640)→桃園區中正三街153號(1643)→同德二街122號(1650)→中埔二街【7-11同德門市】(1655)" },
+                { id: "PM16-特區線-5", name: "特區線-5 (16:20放學)", str: "學校(1620)→大興西路一段323號(1645)→大興西路一段175號【實雅】(1647)→大業路一段139號【全家-大業店】(1655)" },
+                { id: "PM16-平鎮線-1", name: "平鎮線-1 (16:20放學)", str: "學校(1620)→中華路一段632號【自立新村公車站牌】(1630)→中北路二段445號【中北福德宮】(1642)→中北路二段【玉山銀行】(1645)→龍岡路全國加油站【康貝特站牌】(1650)→龍岡路三段【森林公園公車站】(1653)" },
+                { id: "PM16-平鎮線-2", name: "平鎮線-2 (16:20放學)", str: "學校(1620)→環北路211號(1635)→延平路二段430巷【崇義七賢】(1642)→環南路二段/中豐路口【特力屋對面】(1648)→新德街163號【美樂蒂鋼琴】(1650)→平鎮區中豐路131號(1652)" },
+                { id: "PM16-龍岡線", name: "龍岡線 (16:20放學)", str: "學校(1620)→普忠路770巷口(1640)→龍東路/龍江路口(1650)→平東路661號【7-11東正門市】(1700)" },
+                { id: "PM16-八德線-1", name: "八德線-1 (16:20放學)", str: "學校(1620)→榮安十三街/榮安三街口【全家】(1630)→廣福路457號【勝億傢俱】(1640)→國際路一段【竹園餐廳】(1645)→廣豐二街/公園路口(1650)" },
+                { id: "PM16-八德線-2", name: "八德線-2 (16:20放學)", str: "學校(1620)→富國街/莊敬路口【7-11鑫莊門市】(1630)→環中東路/永福路口【加油站】(1640)→中山路/興豐路口【區公所公車站】(1655)" },
+                { id: "PM16-八德線-3", name: "八德線-3 (16:20放學)", str: "學校(1620)→中山路/興豐路口【區公所公車站】(1650)→介壽路二段1143號(1655)" },
+                { id: "PM16-八德線-4", name: "八德線-4 (16:20放學)", str: "學校(1620)→大福街/思源街【萊爾富】(1645)→和義街/和強一街口(1655)→八德區和平路138號【7-11世傳門市】(1658)→大和路108號(1703)" },
+                { id: "PM16-桃園線", name: "桃園線 (16:20放學)", str: "學校(1620)→中山路1512巷口【貿聯貨運】(1630)→龍泉六街2巷【夏威夷社區】(1635)→中山路/延壽街口(1643)→中山路527號【臺灣土地改革陳列館對面】(1645)→桃園區民族路86號(1650)" },
+                { id: "PM16-青埔線-1", name: "青埔線-1 (16:20放學)", str: "學校(1620)→青商路/站前西路口(1640)→青商路【吉的堡】(1642)→致遠一路79號(1648)→致善路一段92號(1650)→領航北路一段308號【竹風青庭】(1700)→高鐵南路三段【7-11高萱門市】(1702)→領航北路二段【全家青埔店】(1702)" },
+                { id: "PM16-青埔線-2", name: "青埔線-2 (16:20放學)", str: "學校(1620)→青昇路123號【青園國小】(1640)→領航南路三段322號(1643)→永春路【土地公廟】(1648)→永春路143號(1653)→永泰路153號(1653)→洽溪路/永順一街路口(1658)→新生路三段399巷口(1705)" },
+                { id: "PM16-南崁線", name: "南崁線 (16:20放學)", str: "學校(1620)→南祥路【長榮吉邸】(1648)→張榮發文物館(1650)→忠孝西路/奉化路【7-11國邦門市】(1700)→南福街【光明郵局公車站】(1703)" }
+            ],
+            PM18: [
+                { id: "PM18-中壢線-1", name: "中壢線-1 (18:00放學)", str: "學校(1800)→福州二街【全家福爵店】(1818)→福州二街【全家福安店】(1822)→元化路【sogo大門】(1825)" },
+                { id: "PM18-中壢線-2", name: "中壢線-2 (18:00放學)", str: "學校(1800)→新生路288號(1828)→六和路/環北路口對面(1833)→環西路二段219號【昇公館】(1835)→環西路【佳家福餐廳】(1838)" },
+                { id: "PM18-中壢線-3", name: "中壢線-3 (18:00放學)", str: "學校(1800)→民權路【民權經典站牌】(1825)→三光路/環西路二段300巷口(1830)" },
+                { id: "PM18-中壢線-4", name: "中壢線-4 (18:00放學)", str: "學校(1800)→中華路/中園路口【健身坊】(1838)→環北路211號(1838)→三光路/環西路二段300巷口(1838)→新榮路78巷/63巷口(1838)→延平路二段430巷【崇義七賢】(1838)" },
+                { id: "PM18-中壢線-5", name: "中壢線-5 (18:00放學)", str: "學校(1800)→文化街236巷口(1838)→復旦路二段150巷185號(1838)→復旦路二段186巷口【萊爾富復梅店】(1838)→民族路雙連一段88號【麥當勞】(1838)→民族路三段【中平國小公車站】(1838)" },
+                { id: "PM18-中壢線-6", name: "中壢線-6 (18:00放學)", str: "學校(1800)→延平路138號【聯合辦公大樓公車站】(1838)→延平路一段【自來水公司】(1838)→平鎮區忠孝路38號(1838)→明德南路58號(1838)→中正路629號【居安新村公車站】(1838)→中央西路二段【大石門】(1838)" },
+                { id: "PM18-中壢線-7", name: "中壢線-7 (18:00放學)", str: "學校(1800)→西園路84巷口(1803)→南園二路/西園路口(1803)→南園二路34號(1803)→南園二路296巷口(1808)" },
+                { id: "PM18-特區線-1", name: "特區線-1 (18:00放學)", str: "學校(1800)→中山路1512巷口【貿聯貨運】(1815)→桃園中山路【新名人賞公車站】(1823)→中山路/延壽街口(1826)→正光路427號(1826)→永安路810-1巷6弄【百川大喆】(1826)→中埔二街【7-11同德門市】(1840)" },
+                { id: "PM18-特區線-2", name: "特區線-2 (18:00放學)", str: "學校(1800)→文中一路/正光路203巷口【吉祥保安公園】(1846)→桃園區力行路335號【全家向陽店】(1846)→溫州一路53號(1846)" },
+                { id: "PM18-特區線-3", name: "特區線-3 (18:00放學)", str: "學校(1800)→慈文路865號(1825)→力行路725號(1834)→中山北路/忠一路口(1834)→大興西路/中正路口(1842)" },
+                { id: "PM18-特區線-4", name: "特區線-4 (18:00放學)", str: "學校(1800)→國強一街/國豐三街口(1803)→興仁路330號【大竹分館】(1847)" },
+                { id: "PM18-特區線-5", name: "特區線-5 (18:00放學)", str: "學校(1800)→大興西路一段175號【實雅】(1820)→大業路337號(1846)→中央街279號(1846)→大業路一段/民富11街口(1847)" },
+                { id: "PM18-特區線-6", name: "特區線-6 (18:00放學)", str: "學校(1800)→大業路一段139號【全家-大業店】(1819)→龜山區萬壽路二段1192號(1838)→桃園市龜山區陸光路93號(1848)" },
+                { id: "PM18-特區線-7", name: "特區線-7 (18:00放學)", str: "學校(1800)→中正路/南平路口(1848)→經國路與天祥七街口【7-11】(1853)→正光一街236號(1904)" },
+                { id: "PM18-特區線-8", name: "特區線-8 (18:00放學)", str: "學校(1800)→中正路1100號【中正藝文特區公車站】(1814)" },
+                { id: "PM18-內壢線-1", name: "內壢線-1 (18:00放學)", str: "學校(1800)→忠孝路168巷17號(1811)→內壢興農路/成章四街口(1814)→內壢火車站(1817)→富國街/莊敬路口【7-11鑫莊門市】(1827)" },
+                { id: "PM18-內壢線-2", name: "內壢線-2 (18:00放學)", str: "學校(1800)→普忠路579巷【深耕二】(1812)→富國街/莊敬路口【7-11鑫莊門市】(1820)→興仁路/華勵國小(1826)" },
+                { id: "PM18-八德線-1", name: "八德線-1 (18:00放學)", str: "學校(1800)→新中北路/華美1路【7-11】(1825)→國際路一段【竹園餐廳】(1835)→廣豐二街/公園路口(1840)→桃德路382號【OK八德桃福店】(1857)" },
+                { id: "PM18-八德線-2", name: "八德線-2 (18:00放學)", str: "學校(1800)→八德國中候車亭(1853)" },
+                { id: "PM18-八德線-3", name: "八德線-3 (18:00放學)", str: "學校(1800)→榮安十三街/榮安十五街口【全家】(1834)→榮安十三街/榮安三街口【全家】(1838)→介壽路二段1143號(1845)→八德國中候車亭(1850)→瑞安街118之3號(1855)" },
+                { id: "PM18-八德線-4", name: "八德線-4 (18:00放學)", str: "學校(1800)→榮安十三街/榮安三街口【全家】(1830)→忠勇六街-君臨天下廣場(1837)→大和路108號(1847)→八德區和平路138號【7-11世傳門市】(1847)" },
+                { id: "PM18-青埔線-1", name: "青埔線-1 (18:00放學)", str: "學校(1800)→領航南路三段322號(1815)→青商路/站前西路口(1815)→高鐵南路三段【7-11高萱門市】(1822)→青商路【吉的堡】(1830)→致遠一路79號(1833)→公園路一段78號【早餐店對面】(1835)→致善路一段92號(1836)→致祥一街95號【首富社區】(1838)→領航北路二段151號【全家中埔店】(1845)" },
+                { id: "PM18-青埔線-2", name: "青埔線-2 (18:00放學)", str: "學校(1800)→中園路二段756號【大江家具】(1825)→站前西路二段207號(1827)→青商路/站前西路口(1830)→領航北路三段199號【全聯春德店】(1840)→洽溪路/永順一街路口(1854)" },
+                { id: "PM18-青埔線-3", name: "青埔線-3 (18:00放學)", str: "學校(1800)→領航南路/文發路口(1827)→領航南路二段/新生路口(1837)→新生路三段399巷口(1840)" },
+                { id: "PM18-青埔線-4", name: "青埔線-4 (18:00放學)", str: "學校(1800)→中正東路三段286號(1814)→永昌路179號(1830)→永泰路153號(1833)→永春路143號(1838)→民權路三段1039巷口(1844)" },
+                { id: "PM18-青埔線-5", name: "青埔線-5 (18:00放學)", str: "學校(1800)→領航北路二段【全家青埔店】(1826)→永春路143號(1847)" },
+                { id: "PM18-平鎮線-1", name: "平鎮線-1 (18:00放學)", str: "學校(1800)→環南路225號【大樹藥局環南店】(1822)→中北路二段501號【川酒小館】(1822)→中北路二段【玉山銀行】(1825)→平鎮區和平路149號(1830)→金陵路二段24號(1833)→環南路二段/中豐路口【特力屋】(1836)→環南路二段/新德街口【公車站】(1838)" },
+                { id: "PM18-平鎮線-2", name: "平鎮線-2 (18:00放學)", str: "學校(1800)→環中東路二段668號【福記包子】(1825)→平鎮區大智街98號【子涵音樂教室】(1833)→平鎮區中豐路南勢二段212號【大千補習班】(1846)→莊敬路【自立郵局】(1847)→龍慈路/龍和三街口(1905)" },
+                { id: "PM18-龍潭線", name: "龍潭線 (18:00放學)", str: "學校(1800)→南東路453巷【大清一品社區】(1838)→南平路103巷66號(1840)→南京路102號(1845)→中豐路山頂段【華夏山莊公車站】(1855)→中山東路/仁慈路口(1857)→大興街/金城街口【萊爾富平南王門市】(1903)" },
+                { id: "PM18-延平線", name: "延平線 (18:00放學)", str: "學校(1800)→延平路一段146號(1806)→自強六路122號(1807)→元化路/延平路口【萊爾富】(1820)→廣安街/延平路口【郭元益】(1822)→中山路/延平路口【知味花生】(1823)" },
+                { id: "PM18-南崁線-1", name: "南崁線-1 (18:00放學)", str: "學校(1800)→中正路【長榮公車站】(1830)→忠孝東路【孫東寶牛排館】(1831)→南祥路【長榮吉邸】(1835)→張榮發文物館(1836)→長春路/中山路口【九德藥局對面】(1837)→仁愛路二段7號(1838)→仁愛路一段509號【比而堡早餐店】(1840)→忠孝西路/奉化路【7-11國邦門市】(1846)" },
+                { id: "PM18-南崁線-2", name: "南崁線-2 (18:00放學)", str: "學校(1800)→光明國小公車站(1835)→忠孝西路/奉化路【7-11國邦門市】(1836)→奉化路232號(1838)→南福街【光明郵局公車站】(1840)" },
+                { id: "PM18-龍岡線-1", name: "龍岡線-1 (18:00放學)", str: "學校(1800)→中山東路3段319號【電信器材廠公車站】(1806)→永福路1138號【國防部福利站-內壢站】(1816)→環中東路/永福路口【加油站】(1820)→龍東路/龍江路口(1830)" },
+                { id: "PM18-龍岡線-2", name: "龍岡線-2 (18:00放學)", str: "學校(1800)→龍東路255巷口【85℃】(1835)→龍岡路全國加油站【康貝特站牌】(1842)→龍岡路三段【森林公園公車站】(1844)" },
+                { id: "PM18-桃園線-1", name: "桃園線-1 (18:00放學)", str: "學校(1800)→龍泉六街2巷【夏威夷社區】(1817)→龍山國小對面(1823)→廈門街/守法路口(1823)→中山路527號【臺灣土地改革陳列館對面】(1824)→桃園區復興路207號對面(1824)→桃園區民族路86號(1830)" },
+                { id: "PM18-桃園線-2", name: "桃園線-2 (18:00放學)", str: "學校(1800)→成功路【葛洛莉內壢分校】(1844)→桃園區桃鶯路355號(1845)" }
+            ]
+        };
+
+        // 將文字路線字串轉換為標準站點物件陣列
+        function parseRouteStringToStops(routeStr) {
+            const parts = routeStr.split('→').map(s => s.trim()).filter(Boolean);
+            return parts.map((part, idx) => {
+                const match = part.match(/^(.*?)\s*\((\d{2}):?(\d{2})\)$/);
+                let name = part;
+                let time = "07:00";
+                if (match) {
+                    name = match[1].trim();
+                    time = `${match[2]}:${match[3]}`;
+                } else if (part === "學校") {
+                    time = "07:30";
+                }
+                const coords = resolveCoordsForStop(name, idx, parts.length);
+                return {
+                    id: idx + 1,
+                    name,
+                    time,
+                    lat: coords.lat,
+                    lng: coords.lng,
+                    actualArrive: "",
+                    actualDepart: ""
+                };
+            });
+        }
+
+        // 建立完整的全校 85 條預設路線查找表
+        const ALL_PRESET_ROUTES = {};
+        Object.keys(RAW_SCHOOL_ROUTES).forEach(period => {
+            RAW_SCHOOL_ROUTES[period].forEach(item => {
+                ALL_PRESET_ROUTES[item.id] = {
+                    period,
+                    id: item.id,
+                    name: item.name,
+                    stops: parseRouteStringToStops(item.str),
+                    security: {
+                        adminPass: "10221122",
+                        driverUser: "",
+                        driverPass: "",
+                        parentUser: "",
+                        parentPass: ""
+                    }
+                };
+            });
+        });
+
+        // ==========================================
+        // 2. 全域狀態變數
+        // ==========================================
+        const urlParams = new URLSearchParams(window.location.search);
+        window.currentChannel = urlParams.get('bus') || "AM-中壢線-1";
+        window.currentMode = "passenger"; // 'passenger' | 'driver'
+        window.adminPassword = "10221122";
+        window.routeSecurity = { driverUser: "", driverPass: "", parentUser: "", parentPass: "" };
+        window.unlockedChannels = new Set(); // 已通過家長驗證的車輛
+        window.driverAuthenticated = false;
+        window.adminAuthenticated = false;
+
+        let routeName = ALL_PRESET_ROUTES[window.currentChannel]?.name || "中壢線-1 (上學)";
+        let stops = JSON.parse(JSON.stringify(ALL_PRESET_ROUTES[window.currentChannel]?.stops || []));
+        let busLocation = { lat: stops[0]?.lat || 24.9612, lng: stops[0]?.lng || 121.2215, speed: 0 };
+
+        // 真實道路軌跡點陣列 (OSRM 規劃後沿馬路行駛的座標點)
+        let roadPathPoints = [];
+        let roadSegmentStopIndices = []; // 每個站點對應到 roadPathPoints 的索引值
+
+        // 地圖與圖層物件
+        let map, busMarker, userMarker, routePolyline, stopMarkersLayer;
+        let isSatellite = false;
+        let googleStreetLayer, googleHybridLayer;
+
+        // GPS 與模擬行駛狀態
+        let watchId = null;
+        let simInterval = null;
+        let simPathIndex = 0;
+        let lastBroadcastMsg = "";
+
+        // ==========================================
+        // 3. 地圖初始化與 OSRM 真實道路路徑演算法
+        // ==========================================
+        function initMap() {
+            map = L.map('map', { zoomControl: false }).setView([busLocation.lat, busLocation.lng], 14);
+
+            // 繁體中文 Google 街道圖與衛星混合圖
+            googleStreetLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=zh-TW&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                attribution: '&copy; Google Maps'
+            }).addTo(map);
+
+            googleHybridLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=y&hl=zh-TW&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                attribution: '&copy; Google Maps'
+            });
+
+            stopMarkersLayer = L.layerGroup().addTo(map);
+
+            // 自訂公車動態圖示
+            const busIcon = L.divIcon({
+                className: 'bus-marker-icon',
+                html: `<div class="relative flex items-center justify-center w-11 h-11">
+                        <div class="absolute inset-0 bg-blue-500 rounded-full pulse-circle"></div>
+                        <div class="relative w-9 h-9 bg-blue-600 border-2 border-white rounded-full shadow-lg flex items-center justify-center text-white">
+                            <i class="fa-solid fa-bus text-sm"></i>
+                        </div>
+                       </div>`,
+                iconSize: [44, 44],
+                iconAnchor: [22, 22]
+            });
+
+            busMarker = L.marker([busLocation.lat, busLocation.lng], { icon: busIcon, zIndexOffset: 1000 }).addTo(map);
+
+            populatePeriodAndRouteSelectors(window.currentChannel);
+            renderStopsAndCalculateRoadPath();
+        }
+
+        function toggleMapLayer() {
+            if (isSatellite) {
+                map.removeLayer(googleHybridLayer);
+                googleStreetLayer.addTo(map);
+                showToast("已切換為 Google 繁體中文街道圖");
+            } else {
+                map.removeLayer(googleStreetLayer);
+                googleHybridLayer.addTo(map);
+                showToast("已切換為 Google 衛星混合圖");
+            }
+            isSatellite = !isSatellite;
+        }
+
+        function centerOnBus() {
+            map.flyTo([busLocation.lat, busLocation.lng], 16, { duration: 0.8 });
+        }
+
+        function locateUser() {
+            if (!navigator.geolocation) {
+                showToast("您的瀏覽器不支援 GPS 定位");
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(pos => {
+                const { latitude, longitude } = pos.coords;
+                if (!userMarker) {
+                    const userIcon = L.divIcon({
+                        className: '',
+                        html: `<div class="w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-md"></div>`,
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+                    });
+                    userMarker = L.marker([latitude, longitude], { icon: userIcon }).addTo(map);
+                } else {
+                    userMarker.setLatLng([latitude, longitude]);
+                }
+                map.flyTo([latitude, longitude], 16);
+                showToast("已定位至您的目前位置");
+            }, () => {
+                showToast("無法取得您的位置，請確認已開啟定位權限");
+            });
+        }
+
+        // 呼叫 OSRM 真實道路路徑規劃 API，讓路線與車子沿著實際馬路轉彎行駛
+        async function fetchRealRoadGeometry(stopList) {
+            const badge = document.getElementById('road-status-badge');
+            if (!stopList || stopList.length < 2) {
+                roadPathPoints = stopList.map(s => [s.lat, s.lng]);
+                badge.classList.add('hidden');
+                return roadPathPoints;
+            }
+
+            try {
+                const coordsParam = stopList.map(s => `${s.lng},${s.lat}`).join(';');
+                const url = `https://router.project-osrm.org/route/v1/driving/${coordsParam}?overview=full&geometries=geojson`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.code === 'Ok' && data.routes && data.routes[0]) {
+                    const geoCoords = data.routes[0].geometry.coordinates;
+                    roadPathPoints = geoCoords.map(c => [c[1], c[0]]); // 轉為 [lat, lng]
+
+                    // 找出每個站點在道路軌跡點上最接近的索引，方便模擬行駛與計算沿馬路距離
+                    roadSegmentStopIndices = stopList.map(st => {
+                        let bestIdx = 0;
+                        let minDist = Infinity;
+                        roadPathPoints.forEach((pt, idx) => {
+                            const d = calcHaversineMeters(st.lat, st.lng, pt[0], pt[1]);
+                            if (d < minDist) {
+                                minDist = d;
+                                bestIdx = idx;
+                            }
+                        });
+                        return bestIdx;
+                    });
+
+                    badge.classList.remove('hidden');
+                    return roadPathPoints;
+                }
+            } catch (e) {
+                // 若網路異常則平滑插值備援
+            }
+
+            // 備援平滑多點折線
+            roadPathPoints = [];
+            roadSegmentStopIndices = [];
+            for (let i = 0; i < stopList.length; i++) {
+                roadSegmentStopIndices.push(roadPathPoints.length);
+                roadPathPoints.push([stopList[i].lat, stopList[i].lng]);
+                if (i < stopList.length - 1) {
+                    const steps = 15;
+                    for (let k = 1; k < steps; k++) {
+                        const r = k / steps;
+                        roadPathPoints.push([
+                            stopList[i].lat + (stopList[i + 1].lat - stopList[i].lat) * r,
+                            stopList[i].lng + (stopList[i + 1].lng - stopList[i].lng) * r
+                        ]);
+                    }
+                }
+            }
+            badge.classList.add('hidden');
+            return roadPathPoints;
+        }
+
+        async function renderStopsAndCalculateRoadPath() {
+            document.getElementById('route-title-display').textContent = routeName;
+            stopMarkersLayer.clearLayers();
+
+            // 畫出各站點標記
+            stops.forEach((stop, index) => {
+                const isSchool = stop.name === "學校" || stop.name === "有得國民中小學";
+                const markerHtml = isSchool
+                    ? `<div class="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-white shadow-md whitespace-nowrap"><i class="fa-solid fa-school mr-1"></i>有得國民中小學</div>`
+                    : `<div class="w-6 h-6 rounded-full bg-white border-2 border-blue-600 text-blue-700 font-extrabold text-[11px] flex items-center justify-center shadow">${index + 1}</div>`;
+
+                const icon = L.divIcon({
+                    className: '',
+                    html: markerHtml,
+                    iconSize: isSchool ? [96, 24] : [24, 24],
+                    iconAnchor: isSchool ? [48, 12] : [12, 12]
+                });
+
+                L.marker([stop.lat, stop.lng], { icon })
+                    .bindPopup(`<strong>${index + 1}. ${stop.name}</strong><br>表定時間：${stop.time}`)
+                    .addTo(stopMarkersLayer);
+            });
+
+            // 取得真實馬路軌跡並繪製藍色路線
+            const pathLatLngs = await fetchRealRoadGeometry(stops);
+            if (routePolyline) map.removeLayer(routePolyline);
+            routePolyline = L.polyline(pathLatLngs, {
+                color: '#2563eb',
+                weight: 5,
+                opacity: 0.82,
+                lineJoin: 'round'
+            }).addTo(map);
+
+            if (pathLatLngs.length > 0) {
+                map.fitBounds(routePolyline.getBounds(), { padding: [35, 35] });
+            }
+
+            renderStopsTimeline();
+            updateETAAndArrivalStatus();
+        }
+
+        // ==========================================
+        // 4. 站點時間軸與到離站自動紀錄
+        // ==========================================
+        function calcHaversineMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function getCurrentHHMM() {
+            const now = new Date();
+            return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function updateETAAndArrivalStatus() {
+            if (!stops || stops.length === 0) return;
+
+            let nextStopIdx = 0;
+            let minDistance = Infinity;
+            let stateChanged = false;
+
+            stops.forEach((st, idx) => {
+                const dist = calcHaversineMeters(busLocation.lat, busLocation.lng, st.lat, st.lng);
+                // 進入站點 120 公尺內自動記錄實際到站時間
+                if (dist <= 120) {
+                    if (!st.actualArrive) {
+                        st.actualArrive = getCurrentHHMM();
+                        stateChanged = true;
+                    }
+                    st._isAtStop = true;
+                } else {
+                    // 曾經進站且現在離開超過 150 公尺，記錄實際離站時間
+                    if (st._isAtStop && !st.actualDepart && dist > 150) {
+                        st.actualDepart = getCurrentHHMM();
+                        st._isAtStop = false;
+                        stateChanged = true;
+                    }
+                }
+
+                // 尋找尚未離站的最近下一站
+                if (!st.actualDepart && dist < minDistance) {
+                    minDistance = dist;
+                    nextStopIdx = idx;
+                }
+            });
+
+            const targetStop = stops[nextStopIdx] || stops[stops.length - 1];
+            const distMeters = Math.round(calcHaversineMeters(busLocation.lat, busLocation.lng, targetStop.lat, targetStop.lng));
+            // 沿馬路實際距離約為直線距離的 1.22 倍
+            const roadMeters = Math.round(distMeters * 1.22);
+            const speedKmh = Math.max(busLocation.speed || 25, 20);
+            const etaMinutes = Math.max(1, Math.round((roadMeters / 1000) / speedKmh * 60));
+
+            document.getElementById('next-stop-name').textContent = `${nextStopIdx + 1}. ${targetStop.name}`;
+            document.getElementById('distance-to-stop').textContent = roadMeters < 1000 ? `${roadMeters} 公尺` : `${(roadMeters / 1000).toFixed(1)} 公里`;
+            document.getElementById('eta-badge').textContent = distMeters <= 120 ? "已到站停靠" : `約 ${etaMinutes} 分鐘後到站`;
+
+            if (stateChanged) {
+                renderStopsTimeline();
+            }
+        }
+
+        function renderStopsTimeline() {
+            const container = document.getElementById('stops-list');
+            container.innerHTML = stops.map((st, idx) => {
+                const isArrived = !!st.actualArrive;
+                const isDeparted = !!st.actualDepart;
+                const dotColor = isDeparted ? 'bg-slate-400' : (isArrived ? 'bg-emerald-500 ring-4 ring-emerald-100' : 'bg-blue-600');
+                return `
+                <div class="flex items-start gap-3 p-2.5 rounded-xl border ${isArrived && !isDeparted ? 'bg-emerald-50/70 border-emerald-200' : 'bg-white border-slate-100'} shadow-sm">
+                    <div class="flex flex-col items-center mt-1">
+                        <span class="w-5 h-5 rounded-full ${dotColor} text-white text-[10px] font-bold flex items-center justify-center">${idx + 1}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-bold text-xs text-slate-800 truncate">${st.name}</span>
+                            <span class="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded shrink-0">表定 ${st.time}</span>
+                        </div>
+                        <div class="mt-1.5 flex items-center gap-3 text-[11px]">
+                            <span class="${st.actualArrive ? 'text-emerald-700 font-bold' : 'text-slate-400'}">
+                                <i class="fa-regular fa-clock mr-1"></i>到站：${st.actualArrive || '--:--'}
+                            </span>
+                            <span class="${st.actualDepart ? 'text-blue-700 font-bold' : 'text-slate-400'}">
+                                <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i>離站：${st.actualDepart || '--:--'}
+                            </span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ==========================================
+        // 5. 司機端：真實手機 GPS 發射 & 沿馬路模擬行駛
+        // ==========================================
+        function toggleRealGPS() {
+            const btn = document.getElementById('btn-start-gps');
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                btn.innerHTML = `<i class="fa-solid fa-satellite-dish"></i><span>啟動真實 GPS</span>`;
+                btn.classList.replace('bg-red-600', 'bg-emerald-600');
+                document.getElementById('driver-gps-accuracy').textContent = "GPS 已停止";
+                showToast("已停止發送真實 GPS 訊號");
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                showToast("此裝置不支援 GPS 定位");
+                return;
+            }
+
+            if (simInterval) toggleSimulation(); // 關閉模擬
+
+            btn.innerHTML = `<i class="fa-solid fa-stop"></i><span>停止發送 GPS</span>`;
+            btn.classList.replace('bg-emerald-600', 'bg-red-600');
+            showToast("已啟動真實 GPS，正在即時發送位置...");
+
+            watchId = navigator.geolocation.watchPosition(pos => {
+                const { latitude, longitude, speed, accuracy } = pos.coords;
+                const kmh = speed ? Math.round(speed * 3.6) : 0;
+                busLocation = { lat: latitude, lng: longitude, speed: kmh };
+
+                busMarker.setLatLng([latitude, longitude]);
+                document.getElementById('hud-speed').innerHTML = `${kmh} <small class="font-normal text-slate-500">km/h</small>`;
+                document.getElementById('hud-updated').textContent = `${getCurrentHHMM()} (真實GPS)`;
+                document.getElementById('driver-gps-accuracy').textContent = `誤差 ±${Math.round(accuracy)}m`;
+
+                updateETAAndArrivalStatus();
+                if (window.broadcastLocationToCloud) {
+                    window.broadcastLocationToCloud(window.currentChannel, busLocation, stops, "driver_gps");
+                }
+            }, err => {
+                showToast("GPS 定位失敗，請確認瀏覽器已允許定位權限");
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 2000,
+                timeout: 10000
+            });
+        }
+
+        // 沿著 OSRM 計算出來的真實馬路軌跡點逐步轉彎前進
+        function toggleSimulation() {
+            const btn = document.getElementById('btn-sim-drive');
+            if (simInterval) {
+                clearInterval(simInterval);
+                simInterval = null;
+                btn.innerHTML = `<i class="fa-solid fa-route"></i><span>沿道路模擬行駛</span>`;
+                btn.classList.replace('bg-amber-600', 'bg-blue-600');
+                showToast("已停止道路模擬行駛");
+                return;
+            }
+
+            if (watchId !== null) toggleRealGPS();
+            if (!roadPathPoints || roadPathPoints.length < 2) {
+                showToast("道路軌跡計算中，請稍候再試");
+                return;
+            }
+
+            simPathIndex = 0;
+            btn.innerHTML = `<i class="fa-solid fa-stop"></i><span>停止模擬行駛</span>`;
+            btn.classList.replace('bg-blue-600', 'bg-amber-600');
+            showToast("交通車已沿著真實馬路軌跡出發！");
+
+            simInterval = setInterval(() => {
+                if (simPathIndex >= roadPathPoints.length) {
+                    simPathIndex = 0; // 抵達終點後重新循環
+                }
+                const pt = roadPathPoints[simPathIndex];
+                const simSpeed = 32 + Math.floor(Math.random() * 12);
+                busLocation = { lat: pt[0], lng: pt[1], speed: simSpeed };
+
+                busMarker.setLatLng(pt);
+                map.panTo(pt, { animate: true, duration: 0.5 });
+
+                document.getElementById('hud-speed').innerHTML = `${simSpeed} <small class="font-normal text-slate-500">km/h</small>`;
+                document.getElementById('hud-updated').textContent = `${getCurrentHHMM()} (沿路模擬)`;
+
+                updateETAAndArrivalStatus();
+                if (window.broadcastLocationToCloud) {
+                    window.broadcastLocationToCloud(window.currentChannel, busLocation, stops, "simulation");
+                }
+
+                // 根據總點數動態調整每次推進步長，維持平順車速
+                const step = Math.max(1, Math.floor(roadPathPoints.length / 180));
+                simPathIndex += step;
+            }, 600);
+        }
+
+        // ==========================================
+        // 6. 時段與路線快選器 & 頻道切換
+        // ==========================================
+        function populatePeriodAndRouteSelectors(selectedBusId) {
+            const preset = ALL_PRESET_ROUTES[selectedBusId];
+            const periodSelect = document.getElementById('period-select');
+            if (preset) {
+                periodSelect.value = preset.period;
+            }
+            const currentPeriod = periodSelect.value;
+            const routeSelect = document.getElementById('preset-route-select');
+            const list = RAW_SCHOOL_ROUTES[currentPeriod] || [];
+
+            routeSelect.innerHTML = list.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+            if (preset) {
+                routeSelect.value = selectedBusId;
+            }
+            document.getElementById('channel-input').value = selectedBusId;
+        }
+
+        function onPeriodChange() {
+            const period = document.getElementById('period-select').value;
+            const list = RAW_SCHOOL_ROUTES[period] || [];
+            if (list.length > 0) {
+                populatePeriodAndRouteSelectors(list[0].id);
+                switchToBusChannel(list[0].id);
+            }
+        }
+
+        function onPresetRouteChange() {
+            const selectedId = document.getElementById('preset-route-select').value;
+            document.getElementById('channel-input').value = selectedId;
+            switchToBusChannel(selectedId);
+        }
+
+        function changeChannel() {
+            const val = document.getElementById('channel-input').value.trim();
+            if (!val) return;
+            switchToBusChannel(val);
+        }
+
+        function switchToBusChannel(busId) {
+            if (simInterval) toggleSimulation();
+            if (watchId !== null) toggleRealGPS();
+
+            window.currentChannel = busId;
+            // 更新網址列記憶車號
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.set('bus', busId);
+            window.history.replaceState({}, '', newUrl);
+
+            // 若為內建全校 85 條路線之一，先載入其站點並計算真實馬路軌跡
+            if (ALL_PRESET_ROUTES[busId]) {
+                const preset = ALL_PRESET_ROUTES[busId];
+                routeName = preset.name;
+                stops = JSON.parse(JSON.stringify(preset.stops));
+                busLocation = { lat: stops[0].lat, lng: stops[0].lng, speed: 0 };
+                busMarker.setLatLng([busLocation.lat, busLocation.lng]);
+                renderStopsAndCalculateRoadPath();
+            }
+
+            // 同時訂閱雲端最新路線與即時 GPS 位置
+            if (window.subscribeToBusChannel) {
+                window.subscribeToBusChannel(busId);
+            }
+            showToast(`已切換追蹤：${busId}`);
+        }
+
+        // ==========================================
+        // 7. 三層級權限驗證 (管理者 / 司機 / 家長)
+        // ==========================================
+        let pendingAuthAction = null; // 'admin' | 'driver' | 'parent'
+
+        function openAuthModal(type, title, desc, needAccount) {
+            pendingAuthAction = type;
+            document.getElementById('auth-modal-title').innerHTML = `<i class="fa-solid fa-shield-halved text-blue-600"></i><span>${title}</span>`;
+            document.getElementById('auth-modal-desc').textContent = desc;
+            document.getElementById('auth-account-group').style.display = needAccount ? 'block' : 'none';
+            document.getElementById('auth-close-btn').style.display = type === 'parent' ? 'none' : 'block';
+            document.getElementById('auth-input-user').value = "";
+            document.getElementById('auth-input-pass').value = "";
+            document.getElementById('auth-error-msg').classList.add('hidden');
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            pendingAuthAction = null;
+        }
+
+        function submitAuthVerification() {
+            const u = document.getElementById('auth-input-user').value.trim();
+            const p = document.getElementById('auth-input-pass').value.trim();
+            const errBox = document.getElementById('auth-error-msg');
+
+            if (pendingAuthAction === 'admin') {
+                if (p === window.adminPassword) {
+                    window.adminAuthenticated = true;
+                    closeAuthModal();
+                    openAdminModalUI();
+                } else {
+                    errBox.textContent = "管理者密碼錯誤，請重新輸入。";
+                    errBox.classList.remove('hidden');
+                }
+            } else if (pendingAuthAction === 'driver') {
+                const reqU = window.routeSecurity.driverUser;
+                const reqP = window.routeSecurity.driverPass;
+                if ((!reqU || u === reqU) && (!reqP || p === reqP)) {
+                    window.driverAuthenticated = true;
+                    closeAuthModal();
+                    switchMode('driver');
+                } else {
+                    errBox.textContent = "司機帳號或密碼不正確。";
+                    errBox.classList.remove('hidden');
+                }
+            } else if (pendingAuthAction === 'parent') {
+                const reqU = window.routeSecurity.parentUser;
+                const reqP = window.routeSecurity.parentPass;
+                if ((!reqU || u === reqU) && (!reqP || p === reqP)) {
+                    window.unlockedChannels.add(window.currentChannel);
+                    closeAuthModal();
+                    showToast("家長安全驗證通過");
+                } else {
+                    errBox.textContent = "家長帳號或密碼不正確，請向學校或司機確認。";
+                    errBox.classList.remove('hidden');
+                }
+            }
+        }
+
+        function checkParentProtection() {
+            const hasParentLock = !!(window.routeSecurity.parentUser || window.routeSecurity.parentPass);
+            if (hasParentLock && !window.unlockedChannels.has(window.currentChannel) && !window.adminAuthenticated) {
+                openAuthModal('parent', '家長端安全驗證', `車輛【${window.currentChannel}】已啟用隱私保護，請輸入家長專屬帳號與密碼以查看位置。`, true);
+            }
+        }
+
+        function requestDriverMode() {
+            const hasDriverLock = !!(window.routeSecurity.driverUser || window.routeSecurity.driverPass);
+            if (!hasDriverLock || window.driverAuthenticated || window.adminAuthenticated) {
+                switchMode('driver');
+            } else {
+                openAuthModal('driver', '司機端身分驗證', `請輸入【${window.currentChannel}】司機專屬帳號與密碼以啟動定位發射台。`, true);
+            }
+        }
+
+        function switchMode(mode) {
+            window.currentMode = mode;
+            const btnP = document.getElementById('btn-mode-passenger');
+            const btnD = document.getElementById('btn-mode-driver');
+            const panelP = document.getElementById('panel-passenger');
+            const panelD = document.getElementById('panel-driver');
+
+            if (mode === 'driver') {
+                btnD.className = "px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-slate-900 text-emerald-400 shadow-sm";
+                btnP.className = "px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900";
+                panelP.classList.add('hidden');
+                panelD.classList.remove('hidden');
+            } else {
+                btnP.className = "px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-blue-600 shadow-sm";
+                btnD.className = "px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900";
+                panelD.classList.add('hidden');
+                panelP.classList.remove('hidden');
+            }
+        }
+
+        // ==========================================
+        // 8. 管理者控制台 (路線編輯 / 批次匯入 / 帳密設定)
+        // ==========================================
+        let tempEditStops = [];
+
+        function openAdminConsole() {
+            if (window.adminAuthenticated) {
+                openAdminModalUI();
+            } else {
+                openAuthModal('admin', '管理者最高權限驗證', '請輸入管理者密碼以編輯路線、匯入站點或設定權限。', false);
+            }
+        }
+
+        function openAdminModalUI() {
+            document.getElementById('edit-bus-code').value = window.currentChannel;
+            document.getElementById('edit-route-name').value = routeName;
+            document.getElementById('edit-admin-pass').value = window.adminPassword;
+            document.getElementById('edit-driver-user').value = window.routeSecurity.driverUser || "";
+            document.getElementById('edit-driver-pass').value = window.routeSecurity.driverPass || "";
+            document.getElementById('edit-parent-user').value = window.routeSecurity.parentUser || "";
+            document.getElementById('edit-parent-pass').value = window.routeSecurity.parentPass || "";
+            document.getElementById('batch-import-text').value = "";
+
+            tempEditStops = JSON.parse(JSON.stringify(stops));
+            renderEditStopsList();
+            document.getElementById('admin-modal').classList.remove('hidden');
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
+        }
+
+        function renderEditStopsList() {
+            const container = document.getElementById('edit-stops-container');
+            container.innerHTML = tempEditStops.map((st, idx) => `
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <span class="font-black text-blue-600 w-6 text-center shrink-0">${idx + 1}</span>
+                    <input type="text" value="${st.name}" onchange="tempEditStops[${idx}].name = this.value" placeholder="站點名稱" class="flex-1 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-bold bg-white">
+                    <input type="text" value="${st.time}" onchange="tempEditStops[${idx}].time = this.value" placeholder="07:10" class="w-20 px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-mono text-center bg-white">
+                    <div class="flex items-center gap-1 justify-end">
+                        <button type="button" onclick="grabMapCenterForStop(${idx})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1.5 rounded-lg text-[11px] font-bold shrink-0">
+                            <i class="fa-solid fa-location-dot mr-1"></i>抓地圖中心
+                        </button>
+                        <button type="button" onclick="removeEditStop(${idx})" class="bg-red-100 hover:bg-red-200 text-red-600 px-2 py-1.5 rounded-lg text-xs font-bold">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function grabMapCenterForStop(idx) {
+            const center = map.getCenter();
+            tempEditStops[idx].lat = +center.lat.toFixed(6);
+            tempEditStops[idx].lng = +center.lng.toFixed(6);
+            showToast(`已將第 ${idx + 1} 站座標更新為目前地圖中心`);
+        }
+
+        function addNewStopRow() {
+            const center = map.getCenter();
+            tempEditStops.push({
+                id: tempEditStops.length + 1,
+                name: "新站點名稱",
+                time: "07:20",
+                lat: +center.lat.toFixed(6),
+                lng: +center.lng.toFixed(6),
+                actualArrive: "",
+                actualDepart: ""
+            });
+            renderEditStopsList();
+        }
+
+        function removeEditStop(idx) {
+            tempEditStops.splice(idx, 1);
+            renderEditStopsList();
+        }
+
+        function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('batch-import-text').value = e.target.result;
+                showToast("CSV 檔案讀取成功，請點選覆蓋或附加匯入");
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function parseBatchStops(replaceAll) {
+            const raw = document.getElementById('batch-import-text').value.trim();
+            if (!raw) {
+                showToast("請先貼上站點資料或上傳 CSV 檔案");
+                return;
+            }
+            const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            const parsed = lines.map((line, i) => {
+                const cols = line.split(/[,，\t]/).map(c => c.trim());
+                const name = cols[0] || `站點 ${i + 1}`;
+                const time = cols[1] || "07:15";
+                const coords = resolveCoordsForStop(name, i, lines.length);
+                return {
+                    id: i + 1,
+                    name,
+                    time,
+                    lat: coords.lat,
+                    lng: coords.lng,
+                    actualArrive: "",
+                    actualDepart: ""
+                };
+            });
+
+            if (replaceAll) {
+                tempEditStops = parsed;
+            } else {
+                tempEditStops = tempEditStops.concat(parsed);
+            }
+            renderEditStopsList();
+            showToast(`成功解析 ${parsed.length} 個站點！`);
+        }
+
+        function saveAdminSettings() {
+            const newCode = document.getElementById('edit-bus-code').value.trim() || window.currentChannel;
+            const newRouteName = document.getElementById('edit-route-name').value.trim() || newCode;
+            const newAdminPass = document.getElementById('edit-admin-pass').value.trim();
+            if (newAdminPass) window.adminPassword = newAdminPass;
+
+            window.routeSecurity = {
+                driverUser: document.getElementById('edit-driver-user').value.trim(),
+                driverPass: document.getElementById('edit-driver-pass').value.trim(),
+                parentUser: document.getElementById('edit-parent-user').value.trim(),
+                parentPass: document.getElementById('edit-parent-pass').value.trim()
+            };
+
+            window.currentChannel = newCode;
+            routeName = newRouteName;
+            stops = tempEditStops;
+            document.getElementById('channel-input').value = newCode;
+
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.set('bus', newCode);
+            window.history.replaceState({}, '', newUrl);
+
+            if (window.saveRouteConfigToCloud) {
+                window.saveRouteConfigToCloud(newCode, routeName, stops, window.routeSecurity, window.adminPassword);
+            }
+
+            closeAdminModal();
+            renderStopsAndCalculateRoadPath();
+            showToast("已儲存設定並重新規劃真實道路軌跡！");
+        }
+
+        async function syncAll85RoutesToCloud() {
+            if (!window.saveRouteConfigToCloud) {
+                showToast("目前為單機模式，已本機載入全校 85 條路線");
+                return;
+            }
+            showToast("正在將全校 85 條路線批次同步至雲端，請稍候...");
+            const keys = Object.keys(ALL_PRESET_ROUTES);
+            for (const key of keys) {
+                const item = ALL_PRESET_ROUTES[key];
+                await window.saveRouteConfigToCloud(item.id, item.name, item.stops, window.routeSecurity, window.adminPassword);
+            }
+            showToast("全校 85 條上放學路線已全部同步至雲端！");
+        }
+
+        // ==========================================
+        // 9. 管理者即時車隊廣播功能
+        // ==========================================
+        function openBroadcastModal() {
+            if (!window.adminAuthenticated) {
+                openAuthModal('admin', '管理者權限驗證', '發布全車廣播需先驗證管理者密碼。', false);
+                return;
+            }
+            document.getElementById('broadcast-target-bus').textContent = window.currentChannel;
+            document.getElementById('broadcast-modal').classList.remove('hidden');
+        }
+
+        function closeBroadcastModal() {
+            document.getElementById('broadcast-modal').classList.add('hidden');
+        }
+
+        function fillBroadcastTemplate(text) {
+            document.getElementById('broadcast-message-input').value = text;
+        }
+
+        function submitBroadcast() {
+            const msg = document.getElementById('broadcast-message-input').value.trim();
+            if (!msg) return;
+            displayBroadcastBanner(msg);
+            if (window.publishBroadcastToCloud) {
+                window.publishBroadcastToCloud(window.currentChannel, msg);
+            }
+            closeBroadcastModal();
+            showToast("已成功發布全車即時廣播！");
+        }
+
+        function clearBroadcast() {
+            document.getElementById('broadcast-message-input').value = "";
+            document.getElementById('broadcast-banner').classList.add('hidden');
+            if (window.publishBroadcastToCloud) {
+                window.publishBroadcastToCloud(window.currentChannel, "");
+            }
+            closeBroadcastModal();
+            showToast("已清除廣播公告");
+        }
+
+        function displayBroadcastBanner(msg) {
+            const banner = document.getElementById('broadcast-banner');
+            if (!msg) {
+                banner.classList.add('hidden');
+                return;
+            }
+            document.getElementById('broadcast-banner-text').textContent = msg;
+            banner.classList.remove('hidden');
+        }
+
+        function dismissBroadcastBanner() {
+            document.getElementById('broadcast-banner').classList.add('hidden');
+        }
+
+        // ==========================================
+        // 10. 免登入下載 APP 檔案與 QR Code 分享視窗
+        // ==========================================
+        let qrInstance = null;
+        let savedPublicBaseUrl = "";
+
+        function openInstallModal() {
+            const currentUrl = window.location.href;
+            const isLocal = currentUrl.startsWith('file://');
+            const warningEl = document.getElementById('local-file-warning');
+            const urlInput = document.getElementById('share-url-input');
+
+            if (isLocal) {
+                warningEl.classList.remove('hidden');
+                urlInput.value = savedPublicBaseUrl || "";
+            } else {
+                warningEl.classList.add('hidden');
+                urlInput.value = savedPublicBaseUrl || currentUrl;
+            }
+
+            document.getElementById('qrcode-bus-label').textContent = `目前綁定車輛：${window.currentChannel} (${routeName})`;
+            document.getElementById('install-modal').classList.remove('hidden');
+            regenerateShareQRCode();
+        }
+
+        function closeInstallModal() {
+            document.getElementById('install-modal').classList.add('hidden');
+        }
+
+        function onShareUrlChanged() {
+            savedPublicBaseUrl = document.getElementById('share-url-input').value.trim();
+            regenerateShareQRCode();
+        }
+
+        function regenerateShareQRCode() {
+            const qrContainer = document.getElementById('qrcode-container');
+            const previewEl = document.getElementById('full-bus-link-preview');
+            qrContainer.innerHTML = "";
+            let targetUrl = document.getElementById('share-url-input').value.trim();
+
+            if (!targetUrl && !window.location.href.startsWith('file://')) {
+                targetUrl = window.location.href;
+            }
+
+            if (!targetUrl) {
+                previewEl.classList.add('hidden');
+                qrContainer.innerHTML = `<div class="text-[11px] text-slate-400 py-8 px-4 text-center">請在上方貼上您的 <strong>https://</strong> 連接網址<br>系統將自動產生給家長與司機掃描的 QR 碼</div>`;
+                return;
+            }
+
+            // 自動補上 https:// 若管理者只輸入網域
+            if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+                targetUrl = 'https://' + targetUrl;
+            }
+
+            // 確保網址自動帶入目前車號參數
+            try {
+                const u = new URL(targetUrl);
+                u.searchParams.set('bus', window.currentChannel);
+                targetUrl = u.toString();
+            } catch (e) {}
+
+            previewEl.textContent = `家長專屬直達連結：${targetUrl}`;
+            previewEl.classList.remove('hidden');
+
+            qrInstance = new QRCode(qrContainer, {
+                text: targetUrl,
+                width: 168,
+                height: 168,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+
+        function copyShareLinkAndInfo() {
+            let targetUrl = document.getElementById('share-url-input').value.trim() || window.location.href;
+            if (!targetUrl || targetUrl.startsWith('file://')) {
+                showToast("請先貼上 https:// 連接網址再複製分享給家長喔！");
+                return;
+            }
+            if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+                targetUrl = 'https://' + targetUrl;
+            }
+            try {
+                const u = new URL(targetUrl);
+                u.searchParams.set('bus', window.currentChannel);
+                targetUrl = u.toString();
+            } catch (e) {}
+
+            const shareText = `【有得國民中小學 · 交通車GPS定位系統】\n路線車號：${window.currentChannel} (${routeName})\n家長免登入直達連結：${targetUrl}\n(iPhone請用Safari開啟→加入主畫面；Android請用Chrome開啟→安裝應用程式)`;
+
+            const tempInput = document.createElement('textarea');
+            tempInput.value = shareText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast("已複製家長直達連結與安裝教學！");
+        }
+
+        // 一鍵下載完整獨立 APP 檔案 (index.html)，免登入即可上傳至靜態空間
+        function downloadStandaloneAppFile() {
+            const fullHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+            const blob = new Blob([fullHtml], { type: "text/html;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "index.html";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("已下載完整 APP 檔案 (index.html)");
+        }
+
+        // ==========================================
+        // 11. 輔助通知與雲端資料接收掛鉤
+        // ==========================================
+        function showToast(msg) {
+            const box = document.getElementById('toast-box');
+            const content = document.getElementById('toast-content');
+            content.innerHTML = `<i class="fa-solid fa-circle-info text-blue-400"></i><span>${msg}</span>`;
+            box.classList.remove('opacity-0');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => {
+                box.classList.add('opacity-0');
+            }, 3000);
+        }
+
+        // 當雲端收到司機手機傳來的最新 GPS 座標或路線設定時更新畫面
+        window.applyCloudBusData = function(data) {
+            if (!data) return;
+            if (data.adminPass) window.adminPassword = data.adminPass;
+            if (data.security) {
+                window.routeSecurity = data.security;
+                checkParentProtection();
+            }
+            if (data.broadcast !== undefined && data.broadcast !== lastBroadcastMsg) {
+                lastBroadcastMsg = data.broadcast;
+                displayBroadcastBanner(data.broadcast);
+            }
+            if (data.routeName && data.stops && Array.isArray(data.stops) && data.stops.length > 0) {
+                const routeChanged = (routeName !== data.routeName || stops.length !== data.stops.length);
+                routeName = data.routeName;
+                stops = data.stops;
+                if (routeChanged) {
+                    renderStopsAndCalculateRoadPath();
+                } else {
+                    renderStopsTimeline();
+                }
+            }
+            if (data.location && window.currentMode === 'passenger') {
+                busLocation = data.location;
+                busMarker.setLatLng([busLocation.lat, busLocation.lng]);
+                document.getElementById('hud-speed').innerHTML = `${busLocation.speed || 0} <small class="font-normal text-slate-500">km/h</small>`;
+                document.getElementById('hud-updated').textContent = `${getCurrentHHMM()} (即時同步)`;
+                document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-emerald-500 shrink-0";
+                document.getElementById('status-text').textContent = "已收到司機即時 GPS 訊號";
+                updateETAAndArrivalStatus();
+            }
+        };
+
+        window.onload = function() {
+            initMap();
+        };
+    </script>
+
+    <!-- 12. 跨手機即時雲端同步模組 (自動偵測環境，單機本機開啟亦不報錯) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let db = null;
+        let auth = null;
+        let unsubscribeBus = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'youde-school-bus-gps';
+
+        async function initCloudSync() {
+            try {
+                if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+                    document.getElementById('status-text').textContent = "單機模式就緒 (道路軌跡已啟用)";
+                    return;
+                }
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-emerald-500 shrink-0";
+                document.getElementById('status-text').textContent = "雲端車隊已連線 · 等待訊號";
+
+                if (window.currentChannel) {
+                    window.subscribeToBusChannel(window.currentChannel);
+                }
+            } catch (err) {
+                document.getElementById('status-text').textContent = "本機道路模擬模式";
+            }
+        }
+
+        window.subscribeToBusChannel = function(channelId) {
+            if (!db || !auth?.currentUser || !channelId) return;
+            if (unsubscribeBus) unsubscribeBus();
+
+            const busDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shuttle_buses', channelId);
+            unsubscribeBus = onSnapshot(busDocRef, (snap) => {
+                if (snap.exists()) {
+                    window.applyCloudBusData(snap.data());
+                }
+            }, (error) => {
+                // 忽略權限讀取警告
+            });
+        };
+
+        window.broadcastLocationToCloud = async function(channelId, location, stopsData, sourceType) {
+            if (!db || !auth?.currentUser || !channelId) return;
+            try {
+                const busDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shuttle_buses', channelId);
+                await setDoc(busDocRef, {
+                    location,
+                    stops: stopsData,
+                    sourceType,
+                    updatedAt: Date.now()
+                }, { merge: true });
+            } catch (e) {}
+        };
+
+        window.saveRouteConfigToCloud = async function(channelId, rName, stopsData, securityObj, adminPassStr) {
+            if (!db || !auth?.currentUser || !channelId) return;
+            try {
+                const busDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shuttle_buses', channelId);
+                await setDoc(busDocRef, {
+                    routeName: rName,
+                    stops: stopsData,
+                    security: securityObj,
+                    adminPass: adminPassStr,
+                    updatedAt: Date.now()
+                }, { merge: true });
+            } catch (e) {}
+        };
+
+        window.publishBroadcastToCloud = async function(channelId, msgText) {
+            if (!db || !auth?.currentUser || !channelId) return;
+            try {
+                const busDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shuttle_buses', channelId);
+                await setDoc(busDocRef, {
+                    broadcast: msgText,
+                    broadcastAt: Date.now()
+                }, { merge: true });
+            } catch (e) {}
+        };
+
+        initCloudSync();
+    </script>
+
+</body></html>
